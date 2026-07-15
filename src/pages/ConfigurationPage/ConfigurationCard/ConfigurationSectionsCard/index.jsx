@@ -2,12 +2,12 @@ import React from 'react';
 import { Alert, AlertDescription, AlertIcon, AlertTitle, Box } from '@chakra-ui/react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
-import Card from 'components/Card';
-import CardBody from 'components/Card/CardBody';
-import CardHeader from 'components/Card/CardHeader';
 import ApConfigurationSectionsCard from './ap';
 import OlgConfigurationSectionsCard from './olg';
 import SwitchConfigurationSectionsCard from './switch';
+import Card from 'components/Card';
+import CardBody from 'components/Card/CardBody';
+import CardHeader from 'components/Card/CardHeader';
 
 const propTypes = {
   configId: PropTypes.string.isRequired,

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import ClientLifecycleDatePickers from '../../DatePickers';
-import MacSearchBar from './MacSearchBar';
 import ClientLifecyleGraph from './Graph';
+import MacSearchBar from './MacSearchBar';
 import { axiosAnalytics } from 'utils/axiosInstances';
 import { getHoursAgo } from 'utils/dateFormatting';
 

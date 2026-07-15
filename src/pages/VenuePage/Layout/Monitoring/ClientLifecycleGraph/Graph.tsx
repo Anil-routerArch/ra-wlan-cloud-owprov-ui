@@ -1,12 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Box, HStack, Heading, IconButton, Spacer, Tooltip as ButtonTooltip } from '@chakra-ui/react';
 import { ArrowsClockwise } from '@phosphor-icons/react';
-
-import { useTranslation } from 'react-i18next';
-import Card from 'components/Card';
-import CardBody from 'components/Card/CardBody';
-import CardHeader from 'components/Card/CardHeader';
-
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -21,6 +15,10 @@ import {
 } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
 import { Line } from 'react-chartjs-2';
+import { useTranslation } from 'react-i18next';
+import Card from 'components/Card';
+import CardBody from 'components/Card/CardBody';
+import CardHeader from 'components/Card/CardHeader';
 import { axiosAnalytics } from 'utils/axiosInstances';
 
 interface ClientEntry {

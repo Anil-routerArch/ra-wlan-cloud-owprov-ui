@@ -20,6 +20,7 @@ const EndpointsPage = React.lazy(() => import('pages/EndpointsPage'));
 const MonitoringPage = React.lazy(() => import('pages/MonitoringPage'));
 const SystemConfigurationPage = React.lazy(() => import('pages/SystemConfigurationPage'));
 const UsersPage = React.lazy(() => import('pages/UsersPage'));
+const PoliciesPage = React.lazy(() => import('pages/PoliciesPage'));
 const VenuePage = React.lazy(() => import('pages/VenuePage'));
 
 const routes: Route[] = [
@@ -104,8 +105,30 @@ const routes: Route[] = [
     ],
   },
   {
+    id: 'users-group',
+    authorized: ['root', 'system'],
+    name: 'users.title',
+    icon: () => <UsersThree size={28} weight="bold" />,
+    children: [
+      {
+        id: 'users-list-sub',
+        authorized: ['root', 'system'],
+        path: '/users',
+        name: 'users.title',
+        component: UsersPage,
+      },
+      {
+        id: 'management-policies',
+        authorized: ['root', 'system'],
+        path: '/policies',
+        name: 'policies.title',
+        component: PoliciesPage,
+      },
+    ],
+  },
+  {
     id: 'users-page',
-    authorized: ['root', 'partner', 'admin', 'csr', 'system'],
+    authorized: ['partner', 'admin', 'csr'],
     path: '/users',
     name: 'users.title',
     icon: () => <UsersThree size={28} weight="bold" />,

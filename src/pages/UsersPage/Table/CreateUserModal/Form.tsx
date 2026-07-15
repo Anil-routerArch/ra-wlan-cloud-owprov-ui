@@ -11,10 +11,10 @@ import StringField from 'components/FormFields/StringField';
 import ToggleField from 'components/FormFields/ToggleField';
 import { testRegex } from 'constants/formTests';
 import { useAuth } from 'contexts/AuthProvider';
+import { useGetEntities, useGetVenues, useGetManagementPolicies } from 'hooks/Network/ManagementRoles';
 import { useCreateUser } from 'hooks/Network/Users';
 import useApiRequirements from 'hooks/useApiRequirements';
 import { axiosProv } from 'utils/axiosInstances';
-import { useGetEntities, useGetVenues, useGetManagementPolicies } from 'hooks/Network/ManagementRoles';
 
 export type CreateUserFormValues = {
   name: string;

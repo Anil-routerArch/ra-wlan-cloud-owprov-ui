@@ -19,11 +19,18 @@ import {
   Flex,
   useToast,
   Divider,
-  Input,
+  useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  Text,
 } from '@chakra-ui/react';
-import { Trash, Plus } from '@phosphor-icons/react';
-import { v4 as uuid } from 'uuid';
+import { Trash, Plus, Info } from '@phosphor-icons/react';
 import { useTranslation } from 'react-i18next';
+import { v4 as uuid } from 'uuid';
 import { useAuth } from 'contexts/AuthProvider';
 import {
   useGetManagementRoles,
@@ -32,7 +39,6 @@ import {
   useGetEntities,
   useGetVenues,
   useGetManagementPolicies,
-  useCreateManagementPolicy,
 } from 'hooks/Network/ManagementRoles';
 
 type Props = {
@@ -44,16 +50,13 @@ export const ManagementRolesTable = ({ userId }: Props) => {
   const toast = useToast();
   const { user } = useAuth();
   const isRoot = user?.userRole === 'root' || user?.userRole === 'system';
+  const { isOpen: isInfoOpen, onOpen: onOpenInfo, onClose: onCloseInfo } = useDisclosure();
 
   const [selectedEntity, setSelectedEntity] = useState('');
   const [selectedVenue, setSelectedVenue] = useState('');
   const [selectedPolicy, setSelectedPolicy] = useState('');
 
-  // Policy creation states (Root only)
-  const [policyName, setPolicyName] = useState('');
-  const [policyEntity, setPolicyEntity] = useState('');
-  const [policyVenue, setPolicyVenue] = useState('');
-  const [policyPreset, setPolicyPreset] = useState('full');
+
 
   const { data: roles, isLoading: rolesLoading, error: rolesError } = useGetManagementRoles();
   const { data: entities, isLoading: entitiesLoading } = useGetEntities();
@@ -62,9 +65,30 @@ export const ManagementRolesTable = ({ userId }: Props) => {
 
   const createRoleMutation = useCreateManagementRole();
   const deleteRoleMutation = useDeleteManagementRole();
-  const createPolicyMutation = useCreateManagementPolicy();
 
-  const userRoles = roles ? roles.filter(role => role.users.includes(userId)) : [];
+
+  const userRoles = roles ? roles.filter(role => Array.isArray(role.users) && role.users.includes(userId)) : [];
+  const currentPolicy = policies?.find(p => p.id === selectedPolicy);
+
+  const getPolicyPermissions = (policy: any) => {
+    if (!policy) return [];
+    const map: Record<string, string> = {};
+    if (Array.isArray(policy.entries)) {
+      policy.entries.forEach((entry: any) => {
+        const access = entry.access[0] || 'NOACCESS';
+        if (Array.isArray(entry.resources)) {
+          entry.resources.forEach((res: string) => {
+            map[res] = access;
+          });
+        }
+      });
+    }
+    const resources = ['customer', 'entity', 'venue', 'inventory', 'configuration', 'managementRole', 'user', 'device'];
+    return resources.map(res => ({
+      resource: res === 'managementRole' ? 'roles & policies' : res,
+      access: map[res] || 'NOACCESS'
+    }));
+  };
 
   useEffect(() => {
     if (policies && policies.length > 0 && !selectedPolicy) {
@@ -129,88 +153,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
     });
   };
 
-  const handleCreatePolicy = () => {
-    if (!policyName) {
-      toast({
-        title: 'Error',
-        description: 'Please specify a policy name.',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-    if (!policyEntity) {
-      toast({
-        title: 'Error',
-        description: 'Please select an Entity for the policy.',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-    if (!policyVenue) {
-      toast({
-        title: 'Error',
-        description: 'Please select a Venue for the policy.',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
 
-    let entries: { resources: string[]; access: string[] }[] = [];
-    if (policyPreset === 'full') {
-      entries = [
-        {
-          resources: ['customer', 'entity', 'venue', 'inventory', 'configuration', 'managementRole', 'user', 'device'],
-          access: ['FULL'],
-        },
-      ];
-    } else if (policyPreset === 'read') {
-      entries = [
-        {
-          resources: ['customer', 'entity', 'venue', 'inventory', 'configuration', 'device'],
-          access: ['READ'],
-        },
-      ];
-    }
-
-    const newPolicy = {
-      id: uuid(),
-      name: policyName,
-      description: `Custom policy created by root`,
-      entity: policyEntity,
-      venue: policyVenue,
-      entries,
-    };
-
-    createPolicyMutation.mutate(newPolicy, {
-      onSuccess: () => {
-        toast({
-          title: 'Success',
-          description: 'Custom management policy created.',
-          status: 'success',
-          duration: 3000,
-          isClosable: true,
-        });
-        setPolicyName('');
-        setPolicyEntity('');
-        setPolicyVenue('');
-      },
-      onError: (e: any) => {
-        toast({
-          title: 'Error',
-          description: e?.response?.data?.ErrorDescription || 'Failed to create policy.',
-          status: 'error',
-          duration: 5000,
-          isClosable: true,
-        });
-      },
-    });
-  };
 
   const handleDelete = (roleId: string) => {
     deleteRoleMutation.mutate(roleId, {
@@ -286,7 +229,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
               <Th>Entity</Th>
               <Th>Venue</Th>
               <Th>Assigned Role (Policy)</Th>
-              <Th w="50px"></Th>
+              <Th w="50px" />
             </Tr>
           </Thead>
           <Tbody>
@@ -351,19 +294,29 @@ export const ManagementRolesTable = ({ userId }: Props) => {
           </Select>
         </FormControl>
 
-        <FormControl maxW="200px" isRequired>
+        <FormControl maxW="240px" isRequired>
           <FormLabel fontSize="xs">Role</FormLabel>
-          <Select
-            size="sm"
-            value={selectedPolicy}
-            onChange={(e) => setSelectedPolicy(e.target.value)}
-          >
-            {policies?.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </Select>
+          <Flex align="center" gap={1}>
+            <Select
+              size="sm"
+              value={selectedPolicy}
+              onChange={(e) => setSelectedPolicy(e.target.value)}
+            >
+              {policies?.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </Select>
+            <IconButton
+              aria-label="View role details"
+              icon={<Info size={18} />}
+              size="sm"
+              variant="ghost"
+              onClick={onOpenInfo}
+              isDisabled={!selectedPolicy}
+            />
+          </Flex>
         </FormControl>
 
         <Button
@@ -377,81 +330,38 @@ export const ManagementRolesTable = ({ userId }: Props) => {
         </Button>
       </Flex>
 
-      {isRoot && (
-        <>
-          <Divider my={6} />
-          <Heading size="xs" mb={3}>Create Custom Management Policy (Root Only)</Heading>
-          <Flex gap={4} wrap="wrap" align="flex-end">
-            <FormControl maxW="200px" isRequired>
-              <FormLabel fontSize="xs">Policy Name</FormLabel>
-              <Input
-                placeholder="Policy Name"
-                size="sm"
-                value={policyName}
-                onChange={(e) => setPolicyName(e.target.value)}
-              />
-            </FormControl>
-
-            <FormControl maxW="200px" isRequired>
-              <FormLabel fontSize="xs">Entity</FormLabel>
-              <Select
-                placeholder="Select Entity"
-                size="sm"
-                value={policyEntity}
-                onChange={(e) => {
-                  setPolicyEntity(e.target.value);
-                  setPolicyVenue('');
-                }}
-              >
-                {entities?.map((e) => (
-                  <option key={e.id} value={e.id}>
-                    {e.name}
-                  </option>
+      <Modal isOpen={isInfoOpen} onClose={onCloseInfo} size="sm">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Role Details: {currentPolicy?.name}</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            {currentPolicy?.description && (
+              <Text fontSize="sm" color="gray.600" mb={4}>
+                {currentPolicy.description}
+              </Text>
+            )}
+            <Table size="sm" variant="simple">
+              <Thead>
+                <Tr>
+                  <Th>Resource</Th>
+                  <Th>Access Level</Th>
+                </Tr>
+              </Thead>
+              <Tbody>
+                {getPolicyPermissions(currentPolicy).map((p) => (
+                  <Tr key={p.resource}>
+                    <Td textTransform="capitalize" fontSize="xs">{p.resource}</Td>
+                    <Td fontWeight="bold" fontSize="xs" color={p.access === 'NOACCESS' ? 'gray.400' : 'blue.600'}>
+                      {p.access}
+                    </Td>
+                  </Tr>
                 ))}
-              </Select>
-            </FormControl>
-
-            <FormControl maxW="200px" isRequired>
-              <FormLabel fontSize="xs">Venue</FormLabel>
-              <Select
-                placeholder="Select Venue"
-                size="sm"
-                value={policyVenue}
-                onChange={(e) => setPolicyVenue(e.target.value)}
-                disabled={!policyEntity}
-              >
-                {venues?.filter(v => v.entity === policyEntity).map((v) => (
-                  <option key={v.id} value={v.id}>
-                    {v.name}
-                  </option>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl maxW="200px" isRequired>
-              <FormLabel fontSize="xs">Access Preset</FormLabel>
-              <Select
-                size="sm"
-                value={policyPreset}
-                onChange={(e) => setPolicyPreset(e.target.value)}
-              >
-                <option value="full">Full Access</option>
-                <option value="read">Read Only</option>
-              </Select>
-            </FormControl>
-
-            <Button
-              colorScheme="teal"
-              size="sm"
-              leftIcon={<Plus size={16} />}
-              onClick={handleCreatePolicy}
-              isLoading={createPolicyMutation.isLoading}
-            >
-              Create Policy
-            </Button>
-          </Flex>
-        </>
-      )}
+              </Tbody>
+            </Table>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 };

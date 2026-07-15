@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, AlertDescription, AlertIcon, Box, Flex, Heading, SimpleGrid, Spacer, Switch } from '@chakra-ui/react';
-import PropTypes from 'prop-types';
 import { useFormikContext } from 'formik';
+import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import DeleteButton from 'components/Buttons/DeleteButton';
+import NumberField from 'components/FormFields/NumberField';
 import SelectField from 'components/FormFields/SelectField';
 import StringField from 'components/FormFields/StringField';
 import ToggleField from 'components/FormFields/ToggleField';
-import NumberField from 'components/FormFields/NumberField';
 import useFastField from 'hooks/useFastField';
 
 const propTypes = {
@@ -139,8 +139,7 @@ const SingleRule = ({ editing, index, remove, mode, interfaceNameOptions }) => {
           <Switch isChecked={showSource} onChange={(e) => onToggleSource(e.target.checked)} isDisabled={!editing} />
         </Flex>
         {showSource && (
-          <>
-            <SimpleGrid minChildWidth="300px" spacing="20px" mt={2} w="100%">
+          <SimpleGrid minChildWidth="300px" spacing="20px" mt={2} w="100%">
               <StringField
                 name={`${basePath}.source.address`}
                 label="address"
@@ -156,7 +155,6 @@ const SingleRule = ({ editing, index, remove, mode, interfaceNameOptions }) => {
                 emptyIsUndefined
               />
             </SimpleGrid>
-          </>
         )}
       </Box>
 
@@ -170,8 +168,7 @@ const SingleRule = ({ editing, index, remove, mode, interfaceNameOptions }) => {
           />
         </Flex>
         {showDestination && (
-          <>
-            <SimpleGrid minChildWidth="300px" spacing="20px" mt={2} w="100%">
+          <SimpleGrid minChildWidth="300px" spacing="20px" mt={2} w="100%">
               <StringField
                 name={`${basePath}.destination.address`}
                 label="address"
@@ -187,7 +184,6 @@ const SingleRule = ({ editing, index, remove, mode, interfaceNameOptions }) => {
                 emptyIsUndefined
               />
             </SimpleGrid>
-          </>
         )}
       </Box>
 
@@ -203,8 +199,7 @@ const SingleRule = ({ editing, index, remove, mode, interfaceNameOptions }) => {
           />
         </Flex>
         {showTranslation && (
-          <>
-            <SimpleGrid minChildWidth="300px" spacing="20px" mt={2} w="100%">
+          <SimpleGrid minChildWidth="300px" spacing="20px" mt={2} w="100%">
               <StringField
                 name={`${basePath}.translation.address`}
                 label="address"
@@ -221,8 +216,6 @@ const SingleRule = ({ editing, index, remove, mode, interfaceNameOptions }) => {
                 emptyIsUndefined
               />
             </SimpleGrid>
-
-          </>
         )}
       </Box>
     </>

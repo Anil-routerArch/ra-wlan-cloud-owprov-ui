@@ -1227,5 +1227,10 @@
     "use_existing": "Use Existing",
     "use_existing_contacts": "Use Existing Contacts",
     "use_this_contact": "Use this contact"
+  },
+  "policies": {
+    "title": "Management Policies",
+    "one": "Management Policy",
+    "error_fetching": "Error fetching policies: {{e}}"
   }
 }

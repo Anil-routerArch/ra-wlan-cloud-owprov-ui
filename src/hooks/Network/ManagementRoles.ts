@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { axiosProv } from 'utils/axiosInstances';
 import { Note } from 'models/Note';
+import { axiosProv } from 'utils/axiosInstances';
 
 export type ManagementRole = {
   id: string;
@@ -105,3 +105,28 @@ export const useCreateManagementPolicy = () => {
     },
   });
 };
+
+const updateManagementPolicy = async (policy: ManagementPolicy) =>
+  axiosProv.put(`managementPolicy/${policy.id}`, policy);
+
+export const useUpdateManagementPolicy = () => {
+  const queryClient = useQueryClient();
+  return useMutation(updateManagementPolicy, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['managementPolicies']);
+    },
+  });
+};
+
+const deleteManagementPolicy = async (policyId: string) =>
+  axiosProv.delete(`managementPolicy/${policyId}`);
+
+export const useDeleteManagementPolicy = () => {
+  const queryClient = useQueryClient();
+  return useMutation(deleteManagementPolicy, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['managementPolicies']);
+    },
+  });
+};
+

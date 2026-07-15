@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
-import PropTypes from 'prop-types';
 import { useFormikContext } from 'formik';
+import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import SelectField from 'components/FormFields/SelectField';
 

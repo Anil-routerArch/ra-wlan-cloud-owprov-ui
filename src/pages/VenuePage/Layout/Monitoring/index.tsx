@@ -3,10 +3,10 @@ import { Box } from '@chakra-ui/react';
 import Masonry from 'react-masonry-css';
 import BusiestVenueDevicesCard from './BusiestDevicesCard';
 import ClientLifecycleCard from './ClientLifecycleCard';
+import ClientLifecycleGraph from './ClientLifecycleGraph';
 import VenueMonitoringTree from './MonitoringTree';
 import VenueStatusBar from './StatusBar';
 import { VenueMonitoringProvider } from './VenueMonitoringContext';
-import ClientLifecycleGraph from './ClientLifecycleGraph';
 
 type Props = {
   venueId: string;

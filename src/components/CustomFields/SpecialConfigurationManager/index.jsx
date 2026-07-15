@@ -3,12 +3,12 @@ import { Alert, AlertDescription, AlertIcon, AlertTitle, Box, Button, Center, He
 import PropTypes from 'prop-types';
 import isEqual from 'react-fast-compare';
 import { useTranslation } from 'react-i18next';
-import { isSupportedDeviceGroup } from 'utils/deviceGroup';
 import SpecialConfigurationForm from './SpecialConfigurationForm';
 import DeleteButton from 'components/Buttons/DeleteButton';
 import { BASE_SECTIONS } from 'constants/configuration';
 import { useGetConfiguration } from 'hooks/Network/Configurations';
 import ConfigurationSectionsCard from 'pages/ConfigurationPage/ConfigurationCard/ConfigurationSectionsCard';
+import { isSupportedDeviceGroup } from 'utils/deviceGroup';
 
 const SECTION_DEFAULTS = {
   globals: 'Globals',
