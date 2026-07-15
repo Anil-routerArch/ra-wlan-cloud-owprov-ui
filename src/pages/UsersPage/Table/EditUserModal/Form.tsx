@@ -13,6 +13,9 @@ import { testObjectName, testRegex } from 'constants/formTests';
 import { useAuth } from 'contexts/AuthProvider';
 import { User, useUpdateUser } from 'hooks/Network/Users';
 import useApiRequirements from 'hooks/useApiRequirements';
+import { useQueryClient } from '@tanstack/react-query';
+import { axiosProv } from 'utils/axiosInstances';
+import { ManagementRolesTable } from 'components/ManagementRolesTable';
 
 type Props = {
   editing: boolean;
@@ -29,6 +32,11 @@ const UpdateUserForm = ({ editing, isOpen, onClose, selectedUser, formRef }: Pro
   const [formKey, setFormKey] = useState(uuid());
   const { passwordPolicyLink, passwordPattern } = useApiRequirements();
   const updateUser = useUpdateUser();
+  const queryClient = useQueryClient();
+
+  const initialValues = React.useMemo(() => ({
+    ...selectedUser,
+  }), [selectedUser]);
 
   const UpdateUserSchema = () =>
     Yup.object().shape({
@@ -69,7 +77,7 @@ const UpdateUserForm = ({ editing, isOpen, onClose, selectedUser, formRef }: Pro
       innerRef={formRef}
       enableReinitialize
       key={formKey}
-      initialValues={selectedUser}
+      initialValues={initialValues}
       validationSchema={UpdateUserSchema}
       onSubmit={({ name, description, currentPassword, userRole, notes }, { setSubmitting, resetForm }) =>
         updateUser.mutateAsync(
@@ -82,7 +90,7 @@ const UpdateUserForm = ({ editing, isOpen, onClose, selectedUser, formRef }: Pro
             notes: notes.filter((note) => note.isNew),
           },
           {
-            onSuccess: () => {
+            onSuccess: async () => {
               setSubmitting(false);
               resetForm();
               toast({
@@ -115,57 +123,63 @@ const UpdateUserForm = ({ editing, isOpen, onClose, selectedUser, formRef }: Pro
         )
       }
     >
-      <>
-        <Tabs variant="enclosed">
-          <TabList>
-            <Tab>{t('common.main')}</Tab>
-            <Tab>{t('common.notes')}</Tab>
-          </TabList>
-          <TabPanels>
-            <TabPanel>
-              <Form>
-                <SimpleGrid minChildWidth="300px" spacing="20px">
-                  <StringField name="email" label={t('common.email')} isDisabled isRequired />
-                  <SelectField
-                    name="userRole"
-                    label={t('user.role')}
-                    options={[
-                      { value: 'accounting', label: 'Accounting' },
-                      { value: 'admin', label: 'Admin' },
-                      { value: 'csr', label: 'CSR' },
-                      { value: 'installer', label: 'Installer' },
-                      { value: 'noc', label: 'NOC' },
-                      { value: 'root', label: 'Root' },
-                      { value: 'system', label: 'System' },
-                    ]}
-                    isRequired
-                    isDisabled={!canEditRole() || formIsDisabled()}
-                  />
-                  <StringField name="name" label={t('common.name')} isDisabled={formIsDisabled()} isRequired />
-                  <StringField
-                    name="currentPassword"
-                    label={t('user.password')}
-                    isDisabled={formIsDisabled()}
-                    hideButton
-                  />
-                  <StringField name="description" label={t('common.description')} isDisabled={formIsDisabled()} />
-                </SimpleGrid>
-              </Form>
-            </TabPanel>
-            <TabPanel>
-              <NotesField isDisabled={!editing} />
-            </TabPanel>
-          </TabPanels>
-        </Tabs>
-        <Flex justifyContent="center" alignItems="right" maxW="100%" mt={4} mb={6}>
-          <Box w="100%">
-            <Link href={passwordPolicyLink} isExternal>
-              {t('login.password_policy')}
-              <ExternalLinkIcon mx="2px" />
-            </Link>
-          </Box>
-        </Flex>
-      </>
+      {() => (
+        <>
+          <Tabs variant="enclosed">
+            <TabList>
+              <Tab>{t('common.main')}</Tab>
+              <Tab>{t('common.notes')}</Tab>
+              <Tab>Access Policy</Tab>
+            </TabList>
+            <TabPanels>
+              <TabPanel>
+                <Form>
+                  <SimpleGrid minChildWidth="300px" spacing="20px">
+                    <StringField name="email" label={t('common.email')} isDisabled isRequired />
+                    <SelectField
+                      name="userRole"
+                      label={t('user.role')}
+                      options={[
+                        { value: 'accounting', label: 'Accounting' },
+                        { value: 'admin', label: 'Admin' },
+                        { value: 'csr', label: 'CSR' },
+                        { value: 'installer', label: 'Installer' },
+                        { value: 'noc', label: 'NOC' },
+                        { value: 'root', label: 'Root' },
+                        { value: 'system', label: 'System' },
+                      ]}
+                      isRequired
+                      isDisabled={!canEditRole() || formIsDisabled()}
+                    />
+                    <StringField name="name" label={t('common.name')} isDisabled={formIsDisabled()} isRequired />
+                    <StringField
+                      name="currentPassword"
+                      label={t('user.password')}
+                      isDisabled={formIsDisabled()}
+                      hideButton
+                    />
+                    <StringField name="description" label={t('common.description')} isDisabled={formIsDisabled()} />
+                  </SimpleGrid>
+                </Form>
+              </TabPanel>
+              <TabPanel>
+                <NotesField isDisabled={!editing} />
+              </TabPanel>
+              <TabPanel>
+                <ManagementRolesTable userId={selectedUser.id} />
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
+          <Flex justifyContent="center" alignItems="right" maxW="100%" mt={4} mb={6}>
+            <Box w="100%">
+              <Link href={passwordPolicyLink} isExternal>
+                {t('login.password_policy')}
+                <ExternalLinkIcon mx="2px" />
+              </Link>
+            </Box>
+          </Flex>
+        </>
+      )}
     </Formik>
   );
 };
