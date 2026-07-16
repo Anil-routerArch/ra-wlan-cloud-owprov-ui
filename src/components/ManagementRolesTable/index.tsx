@@ -55,8 +55,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
   const [selectedEntity, setSelectedEntity] = useState('');
   const [selectedVenue, setSelectedVenue] = useState('');
   const [selectedPolicy, setSelectedPolicy] = useState('');
-
-
+  const [showAddForm, setShowAddForm] = useState(false);
 
   const { data: roles, isLoading: rolesLoading, error: rolesError } = useGetManagementRoles();
   const { data: entities, isLoading: entitiesLoading } = useGetEntities();
@@ -65,7 +64,6 @@ export const ManagementRolesTable = ({ userId }: Props) => {
 
   const createRoleMutation = useCreateManagementRole();
   const deleteRoleMutation = useDeleteManagementRole();
-
 
   const userRoles = roles ? roles.filter(role => Array.isArray(role.users) && role.users.includes(userId)) : [];
   const currentPolicy = policies?.find(p => p.id === selectedPolicy);
@@ -140,6 +138,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
         });
         setSelectedEntity('');
         setSelectedVenue('');
+        setShowAddForm(false);
       },
       onError: (e: any) => {
         toast({
@@ -152,8 +151,6 @@ export const ManagementRolesTable = ({ userId }: Props) => {
       },
     });
   };
-
-
 
   const handleDelete = (roleId: string) => {
     deleteRoleMutation.mutate(roleId, {
@@ -215,7 +212,19 @@ export const ManagementRolesTable = ({ userId }: Props) => {
 
   return (
     <Box p={4} borderWidth="1px" borderRadius="lg" bg="white" w="100%">
-      <Heading size="sm" mb={4}>Scoped Management Role Assignments</Heading>
+      <Flex justifyContent="space-between" alignItems="center" mb={4}>
+        <Heading size="sm">Scoped Management Role Assignments</Heading>
+        {!showAddForm && (
+          <Button
+            colorScheme="blue"
+            size="xs"
+            leftIcon={<Plus size={16} />}
+            onClick={() => setShowAddForm(true)}
+          >
+            Create New Policy
+          </Button>
+        )}
+      </Flex>
       
       {userRoles.length === 0 ? (
         <Alert status="info" mb={4}>
@@ -254,81 +263,91 @@ export const ManagementRolesTable = ({ userId }: Props) => {
         </Table>
       )}
 
-      <Divider my={4} />
+      {showAddForm && (
+        <>
+          <Divider my={4} />
 
-      <Heading size="xs" mb={3}>Assign New Entity or Venue Scope</Heading>
-      <Flex gap={4} wrap="wrap" align="flex-end">
-        <FormControl maxW="200px" isRequired>
-          <FormLabel fontSize="xs">Entity</FormLabel>
-          <Select
-            placeholder="Select Entity"
-            size="sm"
-            value={selectedEntity}
-            onChange={(e) => {
-              setSelectedEntity(e.target.value);
-              setSelectedVenue('');
-            }}
-          >
-            {entities?.map((e) => (
-              <option key={e.id} value={e.id}>
-                {e.name}
-              </option>
-            ))}
-          </Select>
-        </FormControl>
+          <Heading size="xs" mb={3}>Assign New Entity or Venue Scope</Heading>
+          <Flex gap={4} wrap="wrap" align="flex-end">
+            <FormControl maxW="200px" isRequired>
+              <FormLabel fontSize="xs">Entity</FormLabel>
+              <Select
+                placeholder="Select Entity"
+                size="sm"
+                value={selectedEntity}
+                onChange={(e) => {
+                  setSelectedEntity(e.target.value);
+                  setSelectedVenue('');
+                }}
+              >
+                {entities?.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.name}
+                  </option>
+                ))}
+              </Select>
+            </FormControl>
 
-        <FormControl maxW="200px">
-          <FormLabel fontSize="xs">Venue (Optional)</FormLabel>
-          <Select
-            placeholder="Entity-wide"
-            size="sm"
-            value={selectedVenue}
-            onChange={(e) => setSelectedVenue(e.target.value)}
-            disabled={!selectedEntity}
-          >
-            {filteredVenues.map((v) => (
-              <option key={v.id} value={v.id}>
-                {v.name}
-              </option>
-            ))}
-          </Select>
-        </FormControl>
+            <FormControl maxW="200px">
+              <FormLabel fontSize="xs">Venue (Optional)</FormLabel>
+              <Select
+                placeholder="Entity-wide"
+                size="sm"
+                value={selectedVenue}
+                onChange={(e) => setSelectedVenue(e.target.value)}
+                disabled={!selectedEntity}
+              >
+                {filteredVenues.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.name}
+                  </option>
+                ))}
+              </Select>
+            </FormControl>
 
-        <FormControl maxW="240px" isRequired>
-          <FormLabel fontSize="xs">Role</FormLabel>
-          <Flex align="center" gap={1}>
-            <Select
+            <FormControl maxW="240px" isRequired>
+              <FormLabel fontSize="xs">Role</FormLabel>
+              <Flex align="center" gap={1}>
+                <Select
+                  size="sm"
+                  value={selectedPolicy}
+                  onChange={(e) => setSelectedPolicy(e.target.value)}
+                >
+                  {policies?.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </Select>
+                <IconButton
+                  aria-label="View role details"
+                  icon={<Info size={18} />}
+                  size="sm"
+                  variant="ghost"
+                  onClick={onOpenInfo}
+                  isDisabled={!selectedPolicy}
+                />
+              </Flex>
+            </FormControl>
+
+            <Button
+              colorScheme="blue"
               size="sm"
-              value={selectedPolicy}
-              onChange={(e) => setSelectedPolicy(e.target.value)}
+              onClick={handleCreate}
+              isLoading={createRoleMutation.isLoading}
             >
-              {policies?.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </Select>
-            <IconButton
-              aria-label="View role details"
-              icon={<Info size={18} />}
-              size="sm"
+              Save
+            </Button>
+            <Button
               variant="ghost"
-              onClick={onOpenInfo}
-              isDisabled={!selectedPolicy}
-            />
+              size="sm"
+              onClick={() => setShowAddForm(false)}
+            >
+              Cancel
+            </Button>
           </Flex>
-        </FormControl>
-
-        <Button
-          colorScheme="blue"
-          size="sm"
-          leftIcon={<Plus size={16} />}
-          onClick={handleCreate}
-          isLoading={createRoleMutation.isLoading}
-        >
-          Assign Scope
-        </Button>
-      </Flex>
+        </>
+      )}
 
       <Modal isOpen={isInfoOpen} onClose={onCloseInfo} size="sm">
         <ModalOverlay />
