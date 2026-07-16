@@ -18,12 +18,11 @@ import {
   useDisclosure,
   useToast,
 } from '@chakra-ui/react';
-import { Pencil, Trash, Eye } from '@phosphor-icons/react';
+import { Pencil, Trash } from '@phosphor-icons/react';
 import { useTranslation } from 'react-i18next';
 import { v4 as uuid } from 'uuid';
 import CreatePolicyModal from './CreatePolicyModal';
 import EditPolicyModal from './EditPolicyModal';
-import ViewPolicyModal from './ViewPolicyModal';
 import RefreshButton from 'components/Buttons/RefreshButton';
 import { useAuth } from 'contexts/AuthProvider';
 import Card from 'components/Card';
@@ -45,9 +44,7 @@ const PolicyTable = () => {
   const isRoot = user?.userRole === 'root' || user?.userRole === 'system';
   const toast = useToast();
   const [editPolicy, setEditPolicy] = useState<ManagementPolicy | null>(null);
-  const [viewPolicy, setViewPolicy] = useState<ManagementPolicy | null>(null);
   const { isOpen: editOpen, onOpen: openEdit, onClose: closeEdit } = useDisclosure();
-  const { isOpen: viewOpen, onOpen: openView, onClose: closeView } = useDisclosure();
 
   const { data: policies, refetch: refreshPolicies, isFetching } = useGetManagementPolicies();
   const { data: entities } = useGetEntities();
@@ -99,72 +96,52 @@ const PolicyTable = () => {
     openEdit();
   };
 
-  const handleViewClick = (policy: ManagementPolicy) => {
-    setViewPolicy(policy);
-    openView();
-  };
-
   const PolicyActions = ({ policy }: { policy: ManagementPolicy }) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     return (
       <Flex>
-        <Tooltip hasArrow label={t('crud.view') || 'View'} placement="top">
+        <Tooltip hasArrow label={t('crud.edit')} placement="top">
           <IconButton
-            aria-label={t('crud.view') || 'View'}
-            colorScheme="teal"
-            icon={<Eye size={20} />}
+            aria-label={t('crud.edit')}
+            colorScheme="blue"
+            icon={<Pencil size={20} />}
             size="sm"
-            onClick={() => handleViewClick(policy)}
-            mr={isRoot ? 2 : 0}
+            onClick={() => handleEditClick(policy)}
+            mr={2}
           />
         </Tooltip>
 
-        {isRoot && (
-          <>
-            <Tooltip hasArrow label={t('crud.edit')} placement="top">
-              <IconButton
-                aria-label={t('crud.edit')}
-                colorScheme="blue"
-                icon={<Pencil size={20} />}
-                size="sm"
-                onClick={() => handleEditClick(policy)}
-                mr={2}
-              />
-            </Tooltip>
-
-            <Popover isOpen={isOpen} onOpen={onOpen} onClose={onClose}>
-              <Tooltip hasArrow label={t('crud.delete')} placement="top" isDisabled={isOpen}>
-                <Box>
-                  <PopoverTrigger>
-                    <IconButton aria-label={t('crud.delete')} colorScheme="red" icon={<Trash size={20} />} size="sm" />
-                  </PopoverTrigger>
-                </Box>
-              </Tooltip>
-              <PopoverContent>
-                <PopoverArrow />
-                <PopoverCloseButton />
-                <PopoverHeader>Delete {policy.name}</PopoverHeader>
-                <PopoverBody>Are you sure you want to delete this management policy?</PopoverBody>
-                <PopoverFooter>
-                  <Center>
-                    <Button colorScheme="gray" mr="1" size="sm" onClick={onClose}>
-                      {t('common.cancel')}
-                    </Button>
-                    <Button
-                      colorScheme="red"
-                      ml="1"
-                      size="sm"
-                      onClick={() => handleDeletePolicy(policy, onClose)}
-                      isLoading={deletePolicyMutation.isLoading}
-                    >
-                      {t('common.yes')}
-                    </Button>
-                  </Center>
-                </PopoverFooter>
-              </PopoverContent>
-            </Popover>
-          </>
-        )}
+        <Popover isOpen={isOpen} onOpen={onOpen} onClose={onClose}>
+          <Tooltip hasArrow label={t('crud.delete')} placement="top" isDisabled={isOpen}>
+            <Box>
+              <PopoverTrigger>
+                <IconButton aria-label={t('crud.delete')} colorScheme="red" icon={<Trash size={20} />} size="sm" />
+              </PopoverTrigger>
+            </Box>
+          </Tooltip>
+          <PopoverContent>
+            <PopoverArrow />
+            <PopoverCloseButton />
+            <PopoverHeader>Delete {policy.name}</PopoverHeader>
+            <PopoverBody>Are you sure you want to delete this management policy?</PopoverBody>
+            <PopoverFooter>
+              <Center>
+                <Button colorScheme="gray" mr="1" size="sm" onClick={onClose}>
+                  {t('common.cancel')}
+                </Button>
+                <Button
+                  colorScheme="red"
+                  ml="1"
+                  size="sm"
+                  onClick={() => handleDeletePolicy(policy, onClose)}
+                  isLoading={deletePolicyMutation.isLoading}
+                >
+                  {t('common.yes')}
+                </Button>
+              </Center>
+            </PopoverFooter>
+          </PopoverContent>
+        </Popover>
       </Flex>
     );
   };
@@ -201,7 +178,10 @@ const PolicyTable = () => {
         Footer: '',
         accessor: 'description',
       },
-      {
+    ];
+
+    if (isRoot) {
+      baseColumns.push({
         id: 'actions',
         Header: t('common.actions'),
         Footer: '',
@@ -210,11 +190,11 @@ const PolicyTable = () => {
         Cell: ({ cell }) => <PolicyActions policy={cell.row.original} />,
         disableSortBy: true,
         alwaysShow: true,
-      },
-    ];
+      });
+    }
 
     return baseColumns;
-  }, [t, entities, venues]);
+  }, [t, entities, venues, isRoot]);
 
   return (
     <>
@@ -238,15 +218,13 @@ const PolicyTable = () => {
               sortBy={[{ id: 'name', desc: false }]}
               hiddenColumns={[]}
               fullScreen
+              onRowClick={handleEditClick}
             />
           </Box>
         </CardBody>
       </Card>
       {editPolicy && (
         <EditPolicyModal isOpen={editOpen} onClose={closeEdit} policy={editPolicy} />
-      )}
-      {viewPolicy && (
-        <ViewPolicyModal isOpen={viewOpen} onClose={closeView} policy={viewPolicy} />
       )}
     </>
   );

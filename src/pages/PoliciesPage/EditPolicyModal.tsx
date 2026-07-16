@@ -22,6 +22,7 @@ import {
   Box,
 } from '@chakra-ui/react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from 'contexts/AuthProvider';
 import {
   useUpdateManagementPolicy,
   ManagementPolicy,
@@ -48,6 +49,8 @@ type Props = {
 
 const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const isRoot = user?.userRole === 'root' || user?.userRole === 'system';
   const toast = useToast();
   const updatePolicyMutation = useUpdateManagementPolicy();
 
@@ -204,14 +207,23 @@ const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
     <Modal isOpen={isOpen} onClose={onClose} size="lg">
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>{t('crud.edit_obj', { obj: t('policies.one') })}</ModalHeader>
+        <ModalHeader>
+          {isRoot
+            ? t('crud.edit_obj', { obj: t('policies.one') })
+            : `${t('common.view', { defaultValue: 'View' })} ${t('policies.one')}`}
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <Grid templateColumns="repeat(2, 1fr)" gap={4}>
             <GridItem colSpan={2}>
               <FormControl isRequired>
                 <FormLabel fontSize="sm">{t('common.name')}</FormLabel>
-                <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. CSR Policy" />
+                <Input
+                  isDisabled={!isRoot}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. CSR Policy"
+                />
               </FormControl>
             </GridItem>
 
@@ -219,6 +231,7 @@ const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
               <FormControl>
                 <FormLabel fontSize="sm">{t('common.description')}</FormLabel>
                 <Textarea
+                  isDisabled={!isRoot}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Write policy description..."
@@ -235,7 +248,7 @@ const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
           </Heading>
           <FormControl mb={4}>
             <FormLabel fontSize="sm">Access Profile Preset</FormLabel>
-            <Select value={preset} onChange={(e) => setPreset(e.target.value)}>
+            <Select isDisabled={!isRoot} value={preset} onChange={(e) => setPreset(e.target.value)}>
               <option value="full">Full Access (All Permissions)</option>
               <option value="read">Read-Only (All View Permissions)</option>
               <option value="custom">Custom Permissions Grid</option>
@@ -260,6 +273,7 @@ const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
                     </GridItem>
                     <GridItem>
                       <Select
+                        isDisabled={!isRoot}
                         size="xs"
                         value={customAccess[resource]}
                         bg="white"
@@ -279,12 +293,20 @@ const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
           )}
         </ModalBody>
         <ModalFooter>
-          <Button colorScheme="gray" mr={3} onClick={onClose}>
-            {t('common.cancel')}
-          </Button>
-          <Button colorScheme="blue" onClick={handleSave} isLoading={updatePolicyMutation.isLoading}>
-            {t('common.save')}
-          </Button>
+          {isRoot ? (
+            <>
+              <Button colorScheme="gray" mr={3} onClick={onClose}>
+                {t('common.cancel')}
+              </Button>
+              <Button colorScheme="blue" onClick={handleSave} isLoading={updatePolicyMutation.isLoading}>
+                {t('common.save')}
+              </Button>
+            </>
+          ) : (
+            <Button colorScheme="blue" onClick={onClose}>
+              {t('common.close') || 'Close'}
+            </Button>
+          )}
         </ModalFooter>
       </ModalContent>
     </Modal>
