@@ -94,6 +94,24 @@ export const ManagementRolesTable = ({ userId }: Props) => {
     }
   }, [policies]);
 
+  const [hasInitializedForm, setHasInitializedForm] = useState(false);
+
+  useEffect(() => {
+    setHasInitializedForm(false);
+  }, [userId]);
+
+  useEffect(() => {
+    if (roles && !rolesLoading && !hasInitializedForm) {
+      const rolesForUser = roles.filter(role => Array.isArray(role.users) && role.users.includes(userId));
+      if (rolesForUser.length === 0) {
+        setShowAddForm(true);
+      } else {
+        setShowAddForm(false);
+      }
+      setHasInitializedForm(true);
+    }
+  }, [roles, rolesLoading, userId, hasInitializedForm]);
+
   const handleCreate = async () => {
     if (!selectedEntity) {
       toast({
