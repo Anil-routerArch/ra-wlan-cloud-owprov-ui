@@ -106,33 +106,25 @@ const routes: Route[] = [
   },
   {
     id: 'users-group',
-    authorized: ['root', 'system'],
+    authorized: ['root', 'partner', 'admin', 'csr', 'system'],
     name: 'users.title',
     icon: () => <UsersThree size={28} weight="bold" />,
     children: [
       {
         id: 'users-list-sub',
-        authorized: ['root', 'system'],
+        authorized: ['root', 'partner', 'admin', 'csr', 'system'],
         path: '/users',
         name: 'users.title',
         component: UsersPage,
       },
       {
         id: 'management-policies',
-        authorized: ['root', 'system'],
+        authorized: ['root', 'partner', 'admin', 'csr', 'system'],
         path: '/policies',
         name: 'policies.title',
         component: PoliciesPage,
       },
     ],
-  },
-  {
-    id: 'users-page',
-    authorized: ['partner', 'admin', 'csr'],
-    path: '/users',
-    name: 'users.title',
-    icon: () => <UsersThree size={28} weight="bold" />,
-    component: UsersPage,
   },
   {
     id: 'system-group',

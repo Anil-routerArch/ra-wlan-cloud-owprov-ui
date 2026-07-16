@@ -24,6 +24,7 @@ import { v4 as uuid } from 'uuid';
 import CreatePolicyModal from './CreatePolicyModal';
 import EditPolicyModal from './EditPolicyModal';
 import RefreshButton from 'components/Buttons/RefreshButton';
+import { useAuth } from 'contexts/AuthProvider';
 import Card from 'components/Card';
 import CardBody from 'components/Card/CardBody';
 import CardHeader from 'components/Card/CardHeader';
@@ -39,6 +40,8 @@ import { Column } from 'models/Table';
 
 const PolicyTable = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const isRoot = user?.userRole === 'root' || user?.userRole === 'system';
   const toast = useToast();
   const [editPolicy, setEditPolicy] = useState<ManagementPolicy | null>(null);
   const { isOpen: editOpen, onOpen: openEdit, onClose: closeEdit } = useDisclosure();
@@ -175,7 +178,10 @@ const PolicyTable = () => {
         Footer: '',
         accessor: 'description',
       },
-      {
+    ];
+
+    if (isRoot) {
+      baseColumns.push({
         id: 'actions',
         Header: t('common.actions'),
         Footer: '',
@@ -184,10 +190,11 @@ const PolicyTable = () => {
         Cell: ({ cell }) => <PolicyActions policy={cell.row.original} />,
         disableSortBy: true,
         alwaysShow: true,
-      },
-    ];
+      });
+    }
+
     return baseColumns;
-  }, [t, entities, venues]);
+  }, [t, entities, venues, isRoot]);
 
   return (
     <>
@@ -196,7 +203,7 @@ const PolicyTable = () => {
           <Flex w="100%" flexDirection="row" alignItems="center">
             <Heading size="md">{t('policies.title')}</Heading>
             <Box ms="auto">
-              <CreatePolicyModal />
+              {isRoot && <CreatePolicyModal />}
               <RefreshButton onClick={refreshPolicies} isFetching={isFetching} ml={2} />
             </Box>
           </Flex>
