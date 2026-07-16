@@ -23,9 +23,10 @@ type Props = {
   onClose: () => void;
   selectedUser: User;
   formRef: React.Ref<FormikProps<User>>;
+  defaultTab?: number;
 };
 
-const UpdateUserForm = ({ editing, isOpen, onClose, selectedUser, formRef }: Props) => {
+const UpdateUserForm = ({ editing, isOpen, onClose, selectedUser, formRef, defaultTab }: Props) => {
   const { t } = useTranslation();
   const toast = useToast();
   const { user } = useAuth();
@@ -124,7 +125,7 @@ const UpdateUserForm = ({ editing, isOpen, onClose, selectedUser, formRef }: Pro
       }
     >
       <>
-        <Tabs variant="enclosed">
+        <Tabs variant="enclosed" defaultIndex={defaultTab ?? 0}>
           <TabList>
             <Tab>{t('common.main')}</Tab>
             <Tab>{t('common.notes')}</Tab>

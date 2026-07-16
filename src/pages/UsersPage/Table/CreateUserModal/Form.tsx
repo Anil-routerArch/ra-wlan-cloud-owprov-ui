@@ -11,10 +11,8 @@ import StringField from 'components/FormFields/StringField';
 import ToggleField from 'components/FormFields/ToggleField';
 import { testRegex } from 'constants/formTests';
 import { useAuth } from 'contexts/AuthProvider';
-import { useGetEntities, useGetVenues, useGetManagementPolicies } from 'hooks/Network/ManagementRoles';
 import { useCreateUser } from 'hooks/Network/Users';
 import useApiRequirements from 'hooks/useApiRequirements';
-import { axiosProv } from 'utils/axiosInstances';
 
 export type CreateUserFormValues = {
   name: string;
@@ -25,15 +23,11 @@ export type CreateUserFormValues = {
   userRole: string;
   emailValidation: boolean;
   changePassword: boolean;
-  scopeType: string;
-  scopeEntity: string;
-  scopeVenue: string;
-  scopePolicy: string;
 };
 
 type Props = {
   isOpen: boolean;
-  onClose: () => void;
+  onClose: (createdUserId?: string) => void;
   formRef: React.Ref<FormikProps<CreateUserFormValues>>;
 };
 
@@ -45,10 +39,6 @@ const CreateUserForm = ({ isOpen, onClose, formRef }: Props) => {
   const createUser = useCreateUser();
   const { passwordPolicyLink, passwordPattern } = useApiRequirements();
 
-  const { data: entities } = useGetEntities();
-  const { data: venues } = useGetVenues();
-  const { data: policies } = useGetManagementPolicies();
-
   const CreateUserSchema = Yup.object().shape({
     email: Yup.string().email(t('form.invalid_email')).required('Required'),
     name: Yup.string().required('Required'),
@@ -59,19 +49,6 @@ const CreateUserForm = ({ isOpen, onClose, formRef }: Props) => {
       .default(''),
     note: Yup.string(),
     userRole: Yup.string(),
-    scopeType: Yup.string().nullable(),
-    scopeEntity: Yup.string().when('scopeType', {
-      is: (val) => val === 'entity' || val === 'venue',
-      then: Yup.string().required(t('form.required')),
-    }),
-    scopeVenue: Yup.string().when('scopeType', {
-      is: 'venue',
-      then: Yup.string().required(t('form.required')),
-    }),
-    scopePolicy: Yup.string().when('scopeType', {
-      is: (val) => val === 'entity' || val === 'venue',
-      then: Yup.string().required(t('form.required')),
-    }),
   });
   const CreateUserNonRootSchema = Yup.object().shape({
     email: Yup.string().email(t('form.invalid_email')).required('Required'),
@@ -83,19 +60,6 @@ const CreateUserForm = ({ isOpen, onClose, formRef }: Props) => {
       .default(''),
     note: Yup.string(),
     userRole: Yup.string(),
-    scopeType: Yup.string().nullable(),
-    scopeEntity: Yup.string().when('scopeType', {
-      is: (val) => val === 'entity' || val === 'venue',
-      then: Yup.string().required(t('form.required')),
-    }),
-    scopeVenue: Yup.string().when('scopeType', {
-      is: 'venue',
-      then: Yup.string().required(t('form.required')),
-    }),
-    scopePolicy: Yup.string().when('scopeType', {
-      is: (val) => val === 'entity' || val === 'venue',
-      then: Yup.string().required(t('form.required')),
-    }),
   });
 
   const createParameters = ({
@@ -156,10 +120,6 @@ const CreateUserForm = ({ isOpen, onClose, formRef }: Props) => {
           userRole: defaultRole(),
           changePassword: true,
           emailValidation: true,
-          scopeType: '',
-          scopeEntity: '',
-          scopeVenue: '',
-          scopePolicy: '',
         } as CreateUserFormValues
       }
       validationSchema={user?.userRole === 'root' ? CreateUserSchema : CreateUserNonRootSchema}
@@ -167,22 +127,6 @@ const CreateUserForm = ({ isOpen, onClose, formRef }: Props) => {
         createUser.mutate(createParameters(formData), {
           onSuccess: async (response) => {
             const createdUserId = response?.data?.id;
-            try {
-              if (formData.scopeType !== '' && createdUserId) {
-                const newRole = {
-                  id: uuid(),
-                  name: `${formData.name}_role`,
-                  description: `Access role for user ${formData.name}`,
-                  managementPolicy: formData.scopePolicy,
-                  users: [createdUserId],
-                  entity: formData.scopeEntity,
-                  venue: formData.scopeType === 'venue' ? formData.scopeVenue : '',
-                };
-                await axiosProv.post(`managementRole/${newRole.id}`, newRole);
-              }
-            } catch (roleError) {
-              console.error("Failed to associate scope role with new user:", roleError);
-            }
 
             setSubmitting(false);
             resetForm();
@@ -197,7 +141,7 @@ const CreateUserForm = ({ isOpen, onClose, formRef }: Props) => {
               isClosable: true,
               position: 'top-right',
             });
-            onClose();
+            onClose(createdUserId);
           },
           onError: (e) => {
             setSubmitting(false);
@@ -215,7 +159,7 @@ const CreateUserForm = ({ isOpen, onClose, formRef }: Props) => {
         })
       }
     >
-      {({ values, setFieldValue }) => (
+      {() => (
         <Form>
           <SimpleGrid minChildWidth="300px" spacing="20px">
             <StringField name="email" label={t('common.email')} isRequired />
@@ -239,62 +183,6 @@ const CreateUserForm = ({ isOpen, onClose, formRef }: Props) => {
             <ToggleField name="emailValidation" label={t('users.email_validation')} />
             <StringField name="description" label={t('common.description')} />
             <StringField name="note" label={t('common.note')} />
-            
-            <SelectField
-              name="scopeType"
-              label="Scope Type"
-              options={[
-                { value: '', label: 'None' },
-                { value: 'entity', label: 'Entity' },
-                { value: 'venue', label: 'Venue' },
-              ]}
-              onChangeEffect={(e) => {
-                setFieldValue('scopeEntity', '');
-                setFieldValue('scopeVenue', '');
-                setFieldValue('scopePolicy', '');
-              }}
-            />
-
-            {values.scopeType !== '' && (
-              <SelectField
-                name="scopeEntity"
-                label="Select Entity"
-                options={(entities ?? []).map((ent) => ({
-                  value: ent.id,
-                  label: ent.name,
-                }))}
-                onChangeEffect={(e) => {
-                  setFieldValue('scopeVenue', '');
-                }}
-                isRequired
-              />
-            )}
-
-            {values.scopeType === 'venue' && values.scopeEntity !== '' && (
-              <SelectField
-                name="scopeVenue"
-                label="Select Venue"
-                options={(venues ?? [])
-                  .filter((v) => v.entity === values.scopeEntity)
-                  .map((v) => ({
-                    value: v.id,
-                    label: v.name,
-                  }))}
-                isRequired
-              />
-            )}
-
-            {values.scopeType !== '' && (
-              <SelectField
-                name="scopePolicy"
-                label="Select Policy"
-                options={(policies ?? []).map((p) => ({
-                  value: p.id,
-                  label: p.name,
-                }))}
-                isRequired
-              />
-            )}
           </SimpleGrid>
           <Flex justifyContent="center" alignItems="center" maxW="100%" mt={4} mb={6}>
             <Box w="100%">
