@@ -6,14 +6,12 @@ import {
   Flex,
   Heading,
   IconButton,
-  Popover,
-  PopoverArrow,
-  PopoverBody,
-  PopoverCloseButton,
-  PopoverContent,
-  PopoverFooter,
-  PopoverHeader,
-  PopoverTrigger,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
   Tooltip,
   useDisclosure,
   useToast,
@@ -44,7 +42,9 @@ const PolicyTable = () => {
   const isRoot = user?.userRole === 'root' || user?.userRole === 'system';
   const toast = useToast();
   const [editPolicy, setEditPolicy] = useState<ManagementPolicy | null>(null);
+  const [deletePolicy, setDeletePolicy] = useState<ManagementPolicy | null>(null);
   const { isOpen: editOpen, onOpen: openEdit, onClose: closeEdit } = useDisclosure();
+  const { isOpen: deleteOpen, onOpen: openDelete, onClose: closeDelete } = useDisclosure();
 
   const { data: policies, refetch: refreshPolicies, isFetching } = useGetManagementPolicies();
   const { data: entities } = useGetEntities();
@@ -62,10 +62,11 @@ const PolicyTable = () => {
     return found ? found.name : id;
   };
 
-  const handleDeletePolicy = (policy: ManagementPolicy, closePopover: () => void) => {
+  const handleDeletePolicy = useCallback((policy: ManagementPolicy) => {
     deletePolicyMutation.mutate(policy.id, {
       onSuccess: () => {
-        closePopover();
+        setDeletePolicy(null);
+        closeDelete();
         toast({
           id: `policy-delete-success-${uuid()}`,
           title: t('common.success'),
@@ -77,7 +78,7 @@ const PolicyTable = () => {
         });
       },
       onError: (e: any) => {
-        closePopover();
+        closeDelete();
         toast({
           id: `policy-delete-error-${uuid()}`,
           title: t('common.error'),
@@ -89,15 +90,25 @@ const PolicyTable = () => {
         });
       },
     });
-  };
+  }, [closeDelete, deletePolicyMutation, t, toast]);
 
   const handleEditClick = (policy: ManagementPolicy) => {
     setEditPolicy(policy);
     openEdit();
   };
 
+  const handleDeleteClick = (policy: ManagementPolicy) => {
+    setDeletePolicy(policy);
+    openDelete();
+  };
+
+  const handleDeleteClose = () => {
+    if (deletePolicyMutation.isLoading) return;
+    setDeletePolicy(null);
+    closeDelete();
+  };
+
   const PolicyActions = ({ policy }: { policy: ManagementPolicy }) => {
-    const { isOpen, onOpen, onClose } = useDisclosure();
     return (
       <Flex>
         <Tooltip hasArrow label={t('crud.edit')} placement="top">
@@ -110,38 +121,17 @@ const PolicyTable = () => {
             mr={2}
           />
         </Tooltip>
-
-        <Popover isOpen={isOpen} onOpen={onOpen} onClose={onClose}>
-          <Tooltip hasArrow label={t('crud.delete')} placement="top" isDisabled={isOpen}>
-            <Box>
-              <PopoverTrigger>
-                <IconButton aria-label={t('crud.delete')} colorScheme="red" icon={<Trash size={20} />} size="sm" />
-              </PopoverTrigger>
-            </Box>
-          </Tooltip>
-          <PopoverContent>
-            <PopoverArrow />
-            <PopoverCloseButton />
-            <PopoverHeader>Delete {policy.name}</PopoverHeader>
-            <PopoverBody>Are you sure you want to delete this management policy?</PopoverBody>
-            <PopoverFooter>
-              <Center>
-                <Button colorScheme="gray" mr="1" size="sm" onClick={onClose}>
-                  {t('common.cancel')}
-                </Button>
-                <Button
-                  colorScheme="red"
-                  ml="1"
-                  size="sm"
-                  onClick={() => handleDeletePolicy(policy, onClose)}
-                  isLoading={deletePolicyMutation.isLoading}
-                >
-                  {t('common.yes')}
-                </Button>
-              </Center>
-            </PopoverFooter>
-          </PopoverContent>
-        </Popover>
+        <Tooltip hasArrow label={t('crud.delete')} placement="top">
+          <Box>
+            <IconButton
+              aria-label={t('crud.delete')}
+              colorScheme="red"
+              icon={<Trash size={20} />}
+              size="sm"
+              onClick={() => handleDeleteClick(policy)}
+            />
+          </Box>
+        </Tooltip>
       </Flex>
     );
   };
@@ -223,6 +213,29 @@ const PolicyTable = () => {
           </Box>
         </CardBody>
       </Card>
+      <Modal isOpen={deleteOpen} onClose={handleDeleteClose} isCentered>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>{deletePolicy ? `Delete ${deletePolicy.name}` : t('crud.delete')}</ModalHeader>
+          <ModalBody>Are you sure you want to delete this management policy?</ModalBody>
+          <ModalFooter>
+            <Center w="100%">
+              <Button colorScheme="gray" mr="1" size="sm" onClick={handleDeleteClose}>
+                {t('common.cancel')}
+              </Button>
+              <Button
+                colorScheme="red"
+                ml="1"
+                size="sm"
+                onClick={() => deletePolicy && handleDeletePolicy(deletePolicy)}
+                isLoading={deletePolicyMutation.isLoading}
+              >
+                {t('common.yes')}
+              </Button>
+            </Center>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
       {editPolicy && (
         <EditPolicyModal isOpen={editOpen} onClose={closeEdit} policy={editPolicy} />
       )}

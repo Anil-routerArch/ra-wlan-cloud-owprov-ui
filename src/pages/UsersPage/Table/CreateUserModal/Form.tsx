@@ -102,6 +102,16 @@ const CreateUserForm = ({ isOpen, onClose, formRef }: Props) => {
     return 'csr';
   };
 
+  const availableRoleOptions = [
+    { value: 'accounting', label: 'Accounting' },
+    { value: 'admin', label: 'Admin' },
+    { value: 'csr', label: 'CSR' },
+    { value: 'installer', label: 'Installer' },
+    { value: 'noc', label: 'NOC' },
+    ...(user?.userRole === 'root' ? [{ value: 'root', label: 'Root' }] : []),
+    { value: 'system', label: 'System' },
+  ];
+
   useEffect(() => {
     setFormKey(uuid());
   }, [isOpen]);
@@ -167,15 +177,7 @@ const CreateUserForm = ({ isOpen, onClose, formRef }: Props) => {
             <SelectField
               name="userRole"
               label={t('user.role')}
-              options={[
-                { value: 'accounting', label: 'Accounting' },
-                { value: 'admin', label: 'Admin' },
-                { value: 'csr', label: 'CSR' },
-                { value: 'installer', label: 'Installer' },
-                { value: 'noc', label: 'NOC' },
-                { value: 'root', label: 'Root' },
-                { value: 'system', label: 'System' },
-              ]}
+              options={availableRoleOptions}
               isRequired
             />
             <StringField name="currentPassword" label={t('user.password')} isRequired hideButton />
