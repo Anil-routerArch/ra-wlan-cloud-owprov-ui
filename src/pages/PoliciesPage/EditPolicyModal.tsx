@@ -27,6 +27,7 @@ import {
   useUpdateManagementPolicy,
   ManagementPolicy,
 } from 'hooks/Network/ManagementRoles';
+import { getApiErrorMessage } from 'utils/apiErrorMessage';
 
 const RESOURCES = [
   'customer',
@@ -194,7 +195,7 @@ const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
       onError: (e: any) => {
         toast({
           title: t('common.error'),
-          description: e?.response?.data?.ErrorDescription || 'Failed to update policy.',
+          description: getApiErrorMessage(e, 'We could not update this policy.'),
           status: 'error',
           duration: 5000,
           isClosable: true,

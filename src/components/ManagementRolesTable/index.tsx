@@ -26,6 +26,7 @@ import {
   ModalHeader,
   ModalCloseButton,
   ModalBody,
+  ModalFooter,
   Text,
 } from '@chakra-ui/react';
 import { Trash, Plus, Info } from '@phosphor-icons/react';
@@ -40,6 +41,7 @@ import {
   useGetVenues,
   useGetManagementPolicies,
 } from 'hooks/Network/ManagementRoles';
+import { getApiErrorMessage } from 'utils/apiErrorMessage';
 
 type Props = {
   userId: string;
@@ -51,11 +53,13 @@ export const ManagementRolesTable = ({ userId }: Props) => {
   const { user } = useAuth();
   const isRoot = user?.userRole === 'root' || user?.userRole === 'system';
   const { isOpen: isInfoOpen, onOpen: onOpenInfo, onClose: onCloseInfo } = useDisclosure();
+  const { isOpen: isDeleteOpen, onOpen: onOpenDelete, onClose: onCloseDelete } = useDisclosure();
 
   const [selectedEntity, setSelectedEntity] = useState('');
   const [selectedVenue, setSelectedVenue] = useState('');
   const [selectedPolicy, setSelectedPolicy] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
+  const [roleToDelete, setRoleToDelete] = useState<{ id: string; entity: string; venue: string; policy: string } | null>(null);
 
   const { data: roles, isLoading: rolesLoading, error: rolesError } = useGetManagementRoles();
   const { data: entities, isLoading: entitiesLoading } = useGetEntities();
@@ -116,7 +120,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
     if (!selectedEntity) {
       toast({
         title: 'Error',
-        description: 'Please select an Entity.',
+        description: 'Please select an entity.',
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -127,7 +131,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
     if (!selectedPolicy) {
       toast({
         title: 'Error',
-        description: 'Please select a Policy.',
+        description: 'Please select a policy.',
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -161,7 +165,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
       onError: (e: any) => {
         toast({
           title: 'Error',
-          description: e?.response?.data?.ErrorDescription || 'Failed to assign role scope.',
+          description: getApiErrorMessage(e, 'We could not assign this access policy.'),
           status: 'error',
           duration: 5000,
           isClosable: true,
@@ -170,9 +174,18 @@ export const ManagementRolesTable = ({ userId }: Props) => {
     });
   };
 
-  const handleDelete = (roleId: string) => {
-    deleteRoleMutation.mutate(roleId, {
+  const confirmDelete = (role: { id: string; entity: string; venue: string; policy: string }) => {
+    setRoleToDelete(role);
+    onOpenDelete();
+  };
+
+  const handleDelete = () => {
+    if (!roleToDelete) return;
+
+    deleteRoleMutation.mutate(roleToDelete.id, {
       onSuccess: () => {
+        setRoleToDelete(null);
+        onCloseDelete();
         toast({
           title: 'Success',
           description: 'Role scope revoked.',
@@ -182,9 +195,10 @@ export const ManagementRolesTable = ({ userId }: Props) => {
         });
       },
       onError: (e: any) => {
+        onCloseDelete();
         toast({
           title: 'Error',
-          description: e?.response?.data?.ErrorDescription || 'Failed to revoke role.',
+          description: getApiErrorMessage(e, 'We could not remove this access policy.'),
           status: 'error',
           duration: 5000,
           isClosable: true,
@@ -271,7 +285,12 @@ export const ManagementRolesTable = ({ userId }: Props) => {
                     colorScheme="red"
                     size="sm"
                     icon={<Trash size={18} />}
-                    onClick={() => handleDelete(role.id)}
+                    onClick={() => confirmDelete({
+                      id: role.id,
+                      entity: getEntityName(role.entity),
+                      venue: getVenueName(role.venue),
+                      policy: getPolicyName(role.managementPolicy),
+                    })}
                     isLoading={deleteRoleMutation.isLoading}
                   />
                 </Td>
@@ -397,6 +416,34 @@ export const ManagementRolesTable = ({ userId }: Props) => {
               </Tbody>
             </Table>
           </ModalBody>
+        </ModalContent>
+      </Modal>
+
+      <Modal isOpen={isDeleteOpen} onClose={onCloseDelete} isCentered size="sm">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Remove Access Policy</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Text fontSize="sm" mb={3}>
+              Are you sure you want to remove this access policy from the user?
+            </Text>
+            {roleToDelete && (
+              <Box fontSize="sm" color="gray.700">
+                <Text><b>Entity:</b> {roleToDelete.entity}</Text>
+                <Text><b>Venue:</b> {roleToDelete.venue}</Text>
+                <Text><b>Policy:</b> {roleToDelete.policy}</Text>
+              </Box>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button mr={3} onClick={onCloseDelete}>
+              Cancel
+            </Button>
+            <Button colorScheme="red" onClick={handleDelete} isLoading={deleteRoleMutation.isLoading}>
+              Remove
+            </Button>
+          </ModalFooter>
         </ModalContent>
       </Modal>
     </Box>

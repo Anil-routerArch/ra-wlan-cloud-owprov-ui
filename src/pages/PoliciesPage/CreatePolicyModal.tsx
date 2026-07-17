@@ -29,6 +29,7 @@ import {
   useCreateManagementPolicy,
   ManagementPolicy,
 } from 'hooks/Network/ManagementRoles';
+import { getApiErrorMessage } from 'utils/apiErrorMessage';
 
 const RESOURCES = [
   'customer',
@@ -136,7 +137,7 @@ const CreatePolicyModal = () => {
       onError: (e: any) => {
         toast({
           title: t('common.error'),
-          description: e?.response?.data?.ErrorDescription || 'Failed to create policy.',
+          description: getApiErrorMessage(e, 'We could not create this policy.'),
           status: 'error',
           duration: 5000,
           isClosable: true,

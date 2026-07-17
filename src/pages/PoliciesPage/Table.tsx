@@ -35,6 +35,7 @@ import {
   ManagementPolicy,
 } from 'hooks/Network/ManagementRoles';
 import { Column } from 'models/Table';
+import { getApiErrorMessage } from 'utils/apiErrorMessage';
 
 const PolicyTable = () => {
   const { t } = useTranslation();
@@ -82,7 +83,7 @@ const PolicyTable = () => {
         toast({
           id: `policy-delete-error-${uuid()}`,
           title: t('common.error'),
-          description: e?.response?.data?.ErrorDescription || 'Failed to delete policy.',
+          description: getApiErrorMessage(e, 'We could not delete this policy.'),
           status: 'error',
           duration: 5000,
           isClosable: true,
