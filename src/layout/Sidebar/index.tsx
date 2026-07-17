@@ -61,7 +61,7 @@ export const Sidebar = ({ routes, isOpen, toggle, logo, version, topNav, childre
   const sidebarContent = React.useMemo(
     () => (
       <>
-        <Box w="100%" flex="1" minH={0} overflowY="auto">
+        <Box w="100%" flex={children ? "0 1 auto" : "1"} minH={0} overflowY="auto">
           <Accordion allowToggle>
             <VStack spacing={2} alignItems="start" w="100%" px={4}>
               {topNav ? topNav(isRouteActive, toggle) : null}
@@ -83,7 +83,7 @@ export const Sidebar = ({ routes, isOpen, toggle, logo, version, topNav, childre
           </Accordion>
         </Box>
         <Spacer minH={2} />
-        <Box mb={2} mt="auto">
+        <Box mb={2} mt="auto" w="100%" flex={children ? "1 1 auto" : undefined} minH={0} display="flex" flexDirection="column">
           {children}
         </Box>
         <Box pb={4}>

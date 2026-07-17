@@ -1197,7 +1197,8 @@
 		"suspend_success": "Der Benutzer ist jetzt gesperrt",
 		"suspended": "Suspendiert",
 		"title": "Benutzer",
-		"waitiing_for_email_verification": "E-Mail nicht verifiziert"
+		"waitiing_for_email_verification": "E-Mail nicht verifiziert",
+		"group_title": "IAM"
 	},
 	"venues": {
 		"confirm_remove_contact": "Möchten Sie diesen Kontakt von diesem Veranstaltungsort entfernen?",
@@ -1223,5 +1224,10 @@
 		"use_existing": "Benutze existierendes",
 		"use_existing_contacts": "Verwenden Sie vorhandene Kontakte",
 		"use_this_contact": "Verwenden Sie diesen Kontakt"
+	},
+	"policies": {
+		"title": "Richtlinien",
+		"one": "Richtlinie",
+		"error_fetching": "Fehler beim Abrufen der Richtlinien: {{e}}"
 	}
 }

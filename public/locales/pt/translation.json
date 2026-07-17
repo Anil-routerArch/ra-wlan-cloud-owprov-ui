@@ -1197,7 +1197,8 @@
 		"suspend_success": "O usuário agora está suspenso",
 		"suspended": "Suspenso",
 		"title": "Comercial",
-		"waitiing_for_email_verification": "Email não verificado"
+		"waitiing_for_email_verification": "Email não verificado",
+		"group_title": "IAM"
 	},
 	"venues": {
 		"confirm_remove_contact": "Deseja remover este contato deste local?",
@@ -1223,5 +1224,10 @@
 		"use_existing": "Usar existente",
 		"use_existing_contacts": "Usar contatos existentes",
 		"use_this_contact": "Use este contato"
+	},
+	"policies": {
+		"title": "Políticas",
+		"one": "Política",
+		"error_fetching": "Erro ao buscar as políticas: {{e}}"
 	}
 }

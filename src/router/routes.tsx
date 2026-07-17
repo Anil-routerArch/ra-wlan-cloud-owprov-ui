@@ -107,7 +107,7 @@ const routes: Route[] = [
   {
     id: 'users-group',
     authorized: ['root', 'partner', 'admin', 'csr', 'system'],
-    name: 'users.title',
+    name: 'users.group_title',
     icon: () => <UsersThree size={28} weight="bold" />,
     children: [
       {
