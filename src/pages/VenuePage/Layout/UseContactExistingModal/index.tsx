@@ -13,13 +13,15 @@ import { VenueApiResponse } from 'models/Venue';
 
 interface Props {
   venue?: VenueApiResponse;
+  entityId?: string;
   onAssignContact: (contactId: string) => void;
 }
 
-const UseExistingContactModal = ({ onAssignContact, venue }: Props) => {
+const UseExistingContactModal = ({ onAssignContact, venue, entityId }: Props) => {
   const { t } = useTranslation();
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { data: entity } = useGetEntity({ id: venue?.entity });
+  const { data: entity } = useGetEntity({ id: isOpen ? entityId : undefined });
+  const canUseEntityContacts = !!entityId;
 
   const claimContact = async (id: string) => {
     await onAssignContact(id);
@@ -39,12 +41,13 @@ const UseExistingContactModal = ({ onAssignContact, venue }: Props) => {
 
   return (
     <>
-      <Tooltip label={t('venues.use_existing')}>
+      <Tooltip label={canUseEntityContacts ? t('venues.use_existing') : 'No assigned entity contacts available for this venue'}>
         <IconButton
           aria-label={t('venues.use_existing')}
           icon={<Copy size={20} />}
           onClick={onOpen}
           colorScheme="teal"
+          isDisabled={!canUseEntityContacts}
         />
       </Tooltip>
       <Modal initialFocusRef={undefined} onClose={onClose} isOpen={isOpen} size="xl">

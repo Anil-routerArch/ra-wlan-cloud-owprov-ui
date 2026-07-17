@@ -160,7 +160,11 @@ const VenueContactsCard = ({ id }: Props) => {
               onClick={setIsList.on}
             />
           </Tooltip>
-          <UseExistingContactModal onAssignContact={onContactCreate} venue={getVenue.data} />
+          <UseExistingContactModal
+            onAssignContact={onContactCreate}
+            venue={getVenue.data}
+            entityId={lastEntity?.uuid}
+          />
           <CreateContactModal refresh={getVenue.refetch} entityId={lastEntity?.uuid ?? ''} onCreate={onContactCreate} />
           <RefreshButton isFetching={getContacts.isFetching} onClick={getContacts.refetch} />
         </HStack>
