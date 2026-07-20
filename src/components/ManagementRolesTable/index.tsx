@@ -34,6 +34,7 @@ import {
   MenuList,
   MenuItem,
   MenuDivider,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { Trash, Plus, Info, CaretDown, PencilSimple } from '@phosphor-icons/react';
 import { useTranslation } from 'react-i18next';
@@ -59,6 +60,13 @@ export const ManagementRolesTable = ({ userId }: Props) => {
   const toast = useToast();
   const { user } = useAuth();
   const isRoot = user?.userRole === 'root' || user?.userRole === 'system';
+  const panelBg = useColorModeValue('white', 'gray.700');
+  const subtleBg = useColorModeValue('gray.50', 'gray.800');
+  const borderColor = useColorModeValue('gray.200', 'whiteAlpha.200');
+  const mutedText = useColorModeValue('gray.600', 'gray.300');
+  const tableText = useColorModeValue('gray.700', 'gray.100');
+  const noAccessText = useColorModeValue('gray.400', 'gray.500');
+  const accentText = useColorModeValue('blue.600', 'blue.200');
   const { isOpen: isInfoOpen, onOpen: onOpenInfo, onClose: onCloseInfo } = useDisclosure();
   const { isOpen: isDeleteOpen, onOpen: onOpenDelete, onClose: onCloseDelete } = useDisclosure();
 
@@ -326,7 +334,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
   }
 
   return (
-    <Box p={4} borderWidth="1px" borderRadius="lg" bg="white" w="100%">
+    <Box p={4} borderWidth="1px" borderRadius="lg" borderColor={borderColor} bg={panelBg} w="100%">
       <Flex justifyContent="space-between" alignItems="center" mb={4}>
         <Heading size="sm">Scoped Management Policy Assignments</Heading>
         {!showAddForm && (
@@ -367,6 +375,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
                       size="sm"
                       value={editPolicyId}
                       onChange={(e) => setEditPolicyId(e.target.value)}
+                      bg={panelBg}
                     >
                       {policies?.map((policy) => (
                         <option key={policy.id} value={policy.id}>
@@ -466,7 +475,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
                 >
                   {venueSelectionLabel()}
                 </MenuButton>
-                <MenuList minW="260px" maxH="280px" overflowY="auto" p={2}>
+                <MenuList minW="260px" maxH="280px" overflowY="auto" p={2} bg={panelBg} borderColor={borderColor}>
                   <MenuItem closeOnSelect={false} onClick={setEntityOnly}>
                     <Checkbox isChecked={selectedVenueIds.length === 0} pointerEvents="none" mr={2}>
                       Entity only
@@ -504,6 +513,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
                   size="sm"
                   value={selectedPolicy}
                   onChange={(e) => setSelectedPolicy(e.target.value)}
+                  bg={panelBg}
                 >
                   {policies?.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -543,12 +553,12 @@ export const ManagementRolesTable = ({ userId }: Props) => {
 
       <Modal isOpen={isInfoOpen} onClose={onCloseInfo} size="sm">
         <ModalOverlay />
-        <ModalContent>
+        <ModalContent bg={panelBg}>
           <ModalHeader>Policy Details: {currentPolicy?.name}</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
             {currentPolicy?.description && (
-              <Text fontSize="sm" color="gray.600" mb={4}>
+              <Text fontSize="sm" color={mutedText} mb={4}>
                 {currentPolicy.description}
               </Text>
             )}
@@ -562,8 +572,8 @@ export const ManagementRolesTable = ({ userId }: Props) => {
               <Tbody>
                 {getPolicyPermissions(currentPolicy).map((p) => (
                   <Tr key={p.resource}>
-                    <Td textTransform="capitalize" fontSize="xs">{p.resource}</Td>
-                    <Td fontWeight="bold" fontSize="xs" color={p.access === 'NOACCESS' ? 'gray.400' : 'blue.600'}>
+                    <Td textTransform="capitalize" fontSize="xs" color={tableText}>{p.resource}</Td>
+                    <Td fontWeight="bold" fontSize="xs" color={p.access === 'NOACCESS' ? noAccessText : accentText}>
                       {p.access}
                     </Td>
                   </Tr>
@@ -576,7 +586,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
 
       <Modal isOpen={isDeleteOpen} onClose={onCloseDelete} isCentered size="sm">
         <ModalOverlay />
-        <ModalContent>
+        <ModalContent bg={panelBg}>
           <ModalHeader>Remove Access Policy</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
@@ -584,7 +594,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
               Are you sure you want to remove this access policy from the user?
             </Text>
             {roleToDelete && (
-              <Box fontSize="sm" color="gray.700">
+              <Box fontSize="sm" color={tableText}>
                 <Text><b>Entity:</b> {roleToDelete.entity}</Text>
                 <Text><b>Venue:</b> {roleToDelete.venue}</Text>
                 <Text><b>Policy:</b> {roleToDelete.policy}</Text>
