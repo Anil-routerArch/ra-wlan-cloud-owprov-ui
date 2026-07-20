@@ -28,6 +28,9 @@ import {
   ModalBody,
   ModalFooter,
   Text,
+  Checkbox,
+  CheckboxGroup,
+  Stack,
 } from '@chakra-ui/react';
 import { Trash, Plus, Info } from '@phosphor-icons/react';
 import { useTranslation } from 'react-i18next';
@@ -56,7 +59,8 @@ export const ManagementRolesTable = ({ userId }: Props) => {
   const { isOpen: isDeleteOpen, onOpen: onOpenDelete, onClose: onCloseDelete } = useDisclosure();
 
   const [selectedEntity, setSelectedEntity] = useState('');
-  const [selectedVenue, setSelectedVenue] = useState('');
+  const [selectionMode, setSelectionMode] = useState<'entity' | 'all' | 'custom'>('entity');
+  const [selectedVenueIds, setSelectedVenueIds] = useState<string[]>([]);
   const [selectedPolicy, setSelectedPolicy] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [roleToDelete, setRoleToDelete] = useState<{ id: string; entity: string; venue: string; policy: string } | null>(null);
@@ -139,6 +143,28 @@ export const ManagementRolesTable = ({ userId }: Props) => {
       return;
     }
 
+    if (selectionMode === 'custom' && selectedVenueIds.length === 0) {
+      toast({
+        title: 'Error',
+        description: 'Please select at least one venue.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    if (selectionMode === 'all' && filteredVenues.length === 0) {
+      toast({
+        title: 'Error',
+        description: 'The selected entity has no venues to assign.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
     const newRole = {
       id: uuid(),
       name: `Role-${uuid().substring(0, 8)}`,
@@ -146,7 +172,12 @@ export const ManagementRolesTable = ({ userId }: Props) => {
       managementPolicy: selectedPolicy,
       users: [userId],
       entity: selectedEntity,
-      venue: selectedVenue,
+      venue: '',
+      venueIds: selectionMode === 'entity'
+        ? []
+        : selectionMode === 'all'
+          ? filteredVenues.map((venue) => venue.id)
+          : selectedVenueIds,
     };
 
     createRoleMutation.mutate(newRole, {
@@ -159,7 +190,8 @@ export const ManagementRolesTable = ({ userId }: Props) => {
           isClosable: true,
         });
         setSelectedEntity('');
-        setSelectedVenue('');
+        setSelectionMode('entity');
+        setSelectedVenueIds([]);
         setShowAddForm(false);
       },
       onError: (e: any) => {
@@ -213,7 +245,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
   };
 
   const getVenueName = (id: string) => {
-    if (!id) return 'Entity-wide';
+    if (!id) return 'Entity';
     const found = venues?.find(v => v.id === id);
     return found ? found.name : id;
   };
@@ -314,7 +346,8 @@ export const ManagementRolesTable = ({ userId }: Props) => {
                 value={selectedEntity}
                 onChange={(e) => {
                   setSelectedEntity(e.target.value);
-                  setSelectedVenue('');
+                  setSelectionMode('entity');
+                  setSelectedVenueIds([]);
                 }}
               >
                 {entities?.map((e) => (
@@ -325,20 +358,23 @@ export const ManagementRolesTable = ({ userId }: Props) => {
               </Select>
             </FormControl>
 
-            <FormControl maxW="200px">
-              <FormLabel fontSize="xs">Venue (Optional)</FormLabel>
+            <FormControl maxW="220px">
+              <FormLabel fontSize="xs">Scope</FormLabel>
               <Select
-                placeholder="Entity-wide"
                 size="sm"
-                value={selectedVenue}
-                onChange={(e) => setSelectedVenue(e.target.value)}
+                value={selectionMode}
+                onChange={(e) => {
+                  const value = e.target.value as 'entity' | 'all' | 'custom';
+                  setSelectionMode(value);
+                  if (value !== 'custom') {
+                    setSelectedVenueIds([]);
+                  }
+                }}
                 disabled={!selectedEntity}
               >
-                {filteredVenues.map((v) => (
-                  <option key={v.id} value={v.id}>
-                    {v.name}
-                  </option>
-                ))}
+                <option value="entity">Entity only</option>
+                <option value="all">All venues</option>
+                <option value="custom">Custom venues</option>
               </Select>
             </FormControl>
 
@@ -383,6 +419,24 @@ export const ManagementRolesTable = ({ userId }: Props) => {
               Cancel
             </Button>
           </Flex>
+
+          {selectionMode === 'custom' && selectedEntity && (
+            <FormControl mt={4}>
+              <FormLabel fontSize="xs">Venues</FormLabel>
+              <CheckboxGroup
+                value={selectedVenueIds}
+                onChange={(values) => setSelectedVenueIds(values as string[])}
+              >
+                <Stack spacing={2}>
+                  {filteredVenues.map((v) => (
+                    <Checkbox key={v.id} value={v.id} size="sm">
+                      {v.name}
+                    </Checkbox>
+                  ))}
+                </Stack>
+              </CheckboxGroup>
+            </FormControl>
+          )}
         </>
       )}
 

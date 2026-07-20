@@ -10,6 +10,7 @@ export type ManagementRole = {
   users: string[];
   entity: string;
   venue: string;
+  venueIds?: string[];
   notes?: Note[];
   created?: number;
   modified?: number;
@@ -129,4 +130,3 @@ export const useDeleteManagementPolicy = () => {
     },
   });
 };
-
