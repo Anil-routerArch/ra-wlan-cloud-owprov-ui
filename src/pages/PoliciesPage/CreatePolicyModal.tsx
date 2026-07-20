@@ -21,6 +21,7 @@ import {
   Text,
   Divider,
   Box,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { Plus } from '@phosphor-icons/react';
 import { useTranslation } from 'react-i18next';
@@ -46,6 +47,10 @@ const CreatePolicyModal = () => {
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const createPolicyMutation = useCreateManagementPolicy();
+  const panelBg = useColorModeValue('white', 'gray.700');
+  const panelBorder = useColorModeValue('gray.200', 'whiteAlpha.200');
+  const subtleBg = useColorModeValue('gray.50', 'gray.800');
+  const mutedText = useColorModeValue('gray.600', 'gray.300');
 
   // Form states
   const [name, setName] = useState('');
@@ -158,7 +163,7 @@ const CreatePolicyModal = () => {
 
       <Modal isOpen={isOpen} onClose={onClose} size="lg">
         <ModalOverlay />
-        <ModalContent>
+        <ModalContent bg={panelBg}>
           <ModalHeader>{t('crud.create_object', { obj: t('policies.one') })}</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
@@ -190,7 +195,7 @@ const CreatePolicyModal = () => {
             </Heading>
             <FormControl mb={4}>
               <FormLabel fontSize="sm">Access Profile Preset</FormLabel>
-              <Select value={preset} onChange={(e) => setPreset(e.target.value)}>
+              <Select value={preset} onChange={(e) => setPreset(e.target.value)} bg={panelBg}>
                 <option value="full">Full Access (All Permissions)</option>
                 <option value="read">Read-Only (All View Permissions)</option>
                 <option value="custom">Custom Permissions Grid</option>
@@ -198,12 +203,12 @@ const CreatePolicyModal = () => {
             </FormControl>
 
             {preset === 'custom' && (
-              <Box border="1px" borderColor="gray.200" borderRadius="md" p={3} bg="gray.50">
+              <Box border="1px" borderColor={panelBorder} borderRadius="md" p={3} bg={subtleBg}>
                 <Grid templateColumns="1fr 1fr" gap={2} alignItems="center">
-                  <GridItem fontWeight="bold" fontSize="xs" color="gray.600">
+                  <GridItem fontWeight="bold" fontSize="xs" color={mutedText}>
                     Resource Name
                   </GridItem>
-                  <GridItem fontWeight="bold" fontSize="xs" color="gray.600">
+                  <GridItem fontWeight="bold" fontSize="xs" color={mutedText}>
                     Access Level
                   </GridItem>
                   {RESOURCES.map((resource) => (
@@ -217,7 +222,7 @@ const CreatePolicyModal = () => {
                         <Select
                           size="xs"
                           value={customAccess[resource]}
-                          bg="white"
+                          bg={panelBg}
                           onChange={(e) => handleAccessChange(resource, e.target.value)}
                         >
                           {ACCESS_LEVELS.map((lvl) => (

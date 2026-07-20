@@ -20,6 +20,7 @@ import {
   Text,
   Divider,
   Box,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from 'contexts/AuthProvider';
@@ -51,6 +52,10 @@ const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
   const isRoot = user?.userRole === 'root' || user?.userRole === 'system';
   const toast = useToast();
   const updatePolicyMutation = useUpdateManagementPolicy();
+  const panelBg = useColorModeValue('white', 'gray.700');
+  const panelBorder = useColorModeValue('gray.200', 'whiteAlpha.200');
+  const subtleBg = useColorModeValue('gray.50', 'gray.800');
+  const mutedText = useColorModeValue('gray.600', 'gray.300');
 
   // Form states
   const [name, setName] = useState('');
@@ -204,7 +209,7 @@ const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg">
       <ModalOverlay />
-      <ModalContent>
+      <ModalContent bg={panelBg}>
         <ModalHeader>
           {isRoot
             ? t('crud.edit_obj', { obj: t('policies.one') })
@@ -246,7 +251,7 @@ const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
           </Heading>
           <FormControl mb={4}>
             <FormLabel fontSize="sm">Access Profile Preset</FormLabel>
-            <Select isDisabled={!isRoot} value={preset} onChange={(e) => setPreset(e.target.value)}>
+            <Select isDisabled={!isRoot} value={preset} onChange={(e) => setPreset(e.target.value)} bg={panelBg}>
               <option value="full">Full Access (All Permissions)</option>
               <option value="read">Read-Only (All View Permissions)</option>
               <option value="custom">Custom Permissions Grid</option>
@@ -254,12 +259,12 @@ const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
           </FormControl>
 
           {preset === 'custom' && (
-            <Box border="1px" borderColor="gray.200" borderRadius="md" p={3} bg="gray.50">
+            <Box border="1px" borderColor={panelBorder} borderRadius="md" p={3} bg={subtleBg}>
               <Grid templateColumns="1fr 1fr" gap={2} alignItems="center">
-                <GridItem fontWeight="bold" fontSize="xs" color="gray.600">
+                <GridItem fontWeight="bold" fontSize="xs" color={mutedText}>
                   Resource Name
                 </GridItem>
-                <GridItem fontWeight="bold" fontSize="xs" color="gray.600">
+                <GridItem fontWeight="bold" fontSize="xs" color={mutedText}>
                   Access Level
                 </GridItem>
                 {RESOURCES.map((resource) => (
@@ -274,7 +279,7 @@ const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
                         isDisabled={!isRoot}
                         size="xs"
                         value={customAccess[resource]}
-                        bg="white"
+                        bg={panelBg}
                         onChange={(e) => handleAccessChange(resource, e.target.value)}
                       >
                         {ACCESS_LEVELS.map((lvl) => (
