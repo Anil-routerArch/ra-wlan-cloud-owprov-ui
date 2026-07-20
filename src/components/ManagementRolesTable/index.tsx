@@ -29,10 +29,13 @@ import {
   ModalFooter,
   Text,
   Checkbox,
-  CheckboxGroup,
-  Stack,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  MenuDivider,
 } from '@chakra-ui/react';
-import { Trash, Plus, Info } from '@phosphor-icons/react';
+import { Trash, Plus, Info, CaretDown } from '@phosphor-icons/react';
 import { useTranslation } from 'react-i18next';
 import { v4 as uuid } from 'uuid';
 import { useAuth } from 'contexts/AuthProvider';
@@ -59,7 +62,6 @@ export const ManagementRolesTable = ({ userId }: Props) => {
   const { isOpen: isDeleteOpen, onOpen: onOpenDelete, onClose: onCloseDelete } = useDisclosure();
 
   const [selectedEntity, setSelectedEntity] = useState('');
-  const [selectionMode, setSelectionMode] = useState<'entity' | 'all' | 'custom'>('entity');
   const [selectedVenueIds, setSelectedVenueIds] = useState<string[]>([]);
   const [selectedPolicy, setSelectedPolicy] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
@@ -143,28 +145,6 @@ export const ManagementRolesTable = ({ userId }: Props) => {
       return;
     }
 
-    if (selectionMode === 'custom' && selectedVenueIds.length === 0) {
-      toast({
-        title: 'Error',
-        description: 'Please select at least one venue.',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    if (selectionMode === 'all' && filteredVenues.length === 0) {
-      toast({
-        title: 'Error',
-        description: 'The selected entity has no venues to assign.',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
     const newRole = {
       id: uuid(),
       name: `Role-${uuid().substring(0, 8)}`,
@@ -173,11 +153,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
       users: [userId],
       entity: selectedEntity,
       venue: '',
-      venueIds: selectionMode === 'entity'
-        ? []
-        : selectionMode === 'all'
-          ? filteredVenues.map((venue) => venue.id)
-          : selectedVenueIds,
+      venueIds: selectedVenueIds,
     };
 
     createRoleMutation.mutate(newRole, {
@@ -190,7 +166,6 @@ export const ManagementRolesTable = ({ userId }: Props) => {
           isClosable: true,
         });
         setSelectedEntity('');
-        setSelectionMode('entity');
         setSelectedVenueIds([]);
         setShowAddForm(false);
       },
@@ -256,6 +231,26 @@ export const ManagementRolesTable = ({ userId }: Props) => {
   };
 
   const filteredVenues = venues ? venues.filter(v => v.entity === selectedEntity) : [];
+  const allFilteredVenueIds = filteredVenues.map((venue) => venue.id);
+  const allVenuesSelected =
+    filteredVenues.length > 0 && allFilteredVenueIds.every((venueId) => selectedVenueIds.includes(venueId));
+
+  const venueSelectionLabel = () => {
+    if (selectedVenueIds.length === 0) return 'Entity only';
+    if (allVenuesSelected) return 'All venues';
+    if (selectedVenueIds.length === 1) {
+      return getVenueName(selectedVenueIds[0]);
+    }
+    return `${selectedVenueIds.length} venues selected`;
+  };
+
+  const setEntityOnly = () => setSelectedVenueIds([]);
+  const setAllVenues = () => setSelectedVenueIds(allFilteredVenueIds);
+  const toggleVenueSelection = (venueId: string) => {
+    setSelectedVenueIds((current) =>
+      current.includes(venueId) ? current.filter((id) => id !== venueId) : [...current, venueId]
+    );
+  };
 
   if (rolesLoading || entitiesLoading || venuesLoading || policiesLoading) {
     return (
@@ -346,7 +341,6 @@ export const ManagementRolesTable = ({ userId }: Props) => {
                 value={selectedEntity}
                 onChange={(e) => {
                   setSelectedEntity(e.target.value);
-                  setSelectionMode('entity');
                   setSelectedVenueIds([]);
                 }}
               >
@@ -358,24 +352,51 @@ export const ManagementRolesTable = ({ userId }: Props) => {
               </Select>
             </FormControl>
 
-            <FormControl maxW="220px">
-              <FormLabel fontSize="xs">Scope</FormLabel>
-              <Select
-                size="sm"
-                value={selectionMode}
-                onChange={(e) => {
-                  const value = e.target.value as 'entity' | 'all' | 'custom';
-                  setSelectionMode(value);
-                  if (value !== 'custom') {
-                    setSelectedVenueIds([]);
-                  }
-                }}
-                disabled={!selectedEntity}
-              >
-                <option value="entity">Entity only</option>
-                <option value="all">All venues</option>
-                <option value="custom">Custom venues</option>
-              </Select>
+            <FormControl maxW="260px">
+              <FormLabel fontSize="xs">Venues</FormLabel>
+              <Menu closeOnSelect={false}>
+                <MenuButton
+                  as={Button}
+                  size="sm"
+                  variant="outline"
+                  rightIcon={<CaretDown size={16} />}
+                  isDisabled={!selectedEntity}
+                  w="100%"
+                  textAlign="left"
+                  justifyContent="space-between"
+                  fontWeight="normal"
+                >
+                  {venueSelectionLabel()}
+                </MenuButton>
+                <MenuList minW="260px" maxH="280px" overflowY="auto" p={2}>
+                  <MenuItem closeOnSelect={false} onClick={setEntityOnly}>
+                    <Checkbox isChecked={selectedVenueIds.length === 0} pointerEvents="none" mr={2}>
+                      Entity only
+                    </Checkbox>
+                  </MenuItem>
+                  <MenuItem closeOnSelect={false} onClick={setAllVenues} isDisabled={filteredVenues.length === 0}>
+                    <Checkbox isChecked={allVenuesSelected} pointerEvents="none" mr={2}>
+                      Select all venues
+                    </Checkbox>
+                  </MenuItem>
+                  <MenuDivider />
+                  {filteredVenues.map((venue) => (
+                    <MenuItem
+                      key={venue.id}
+                      closeOnSelect={false}
+                      onClick={() => toggleVenueSelection(venue.id)}
+                    >
+                      <Checkbox
+                        isChecked={selectedVenueIds.includes(venue.id)}
+                        pointerEvents="none"
+                        mr={2}
+                      >
+                        {venue.name}
+                      </Checkbox>
+                    </MenuItem>
+                  ))}
+                </MenuList>
+              </Menu>
             </FormControl>
 
             <FormControl maxW="240px" isRequired>
@@ -419,24 +440,6 @@ export const ManagementRolesTable = ({ userId }: Props) => {
               Cancel
             </Button>
           </Flex>
-
-          {selectionMode === 'custom' && selectedEntity && (
-            <FormControl mt={4}>
-              <FormLabel fontSize="xs">Venues</FormLabel>
-              <CheckboxGroup
-                value={selectedVenueIds}
-                onChange={(values) => setSelectedVenueIds(values as string[])}
-              >
-                <Stack spacing={2}>
-                  {filteredVenues.map((v) => (
-                    <Checkbox key={v.id} value={v.id} size="sm">
-                      {v.name}
-                    </Checkbox>
-                  ))}
-                </Stack>
-              </CheckboxGroup>
-            </FormControl>
-          )}
         </>
       )}
 
