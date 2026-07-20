@@ -32,13 +32,10 @@ import {
 import { getApiErrorMessage } from 'utils/apiErrorMessage';
 
 const RESOURCES = [
-  'customer',
   'entity',
   'venue',
-  'inventory',
   'configuration',
   'managementRole',
-  'user',
   'device',
 ];
 
