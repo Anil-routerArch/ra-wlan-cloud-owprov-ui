@@ -61,7 +61,6 @@ export const ManagementRolesTable = ({ userId }: Props) => {
   const isRoot = user?.userRole === 'root' || user?.userRole === 'system';
   const { isOpen: isInfoOpen, onOpen: onOpenInfo, onClose: onCloseInfo } = useDisclosure();
   const { isOpen: isDeleteOpen, onOpen: onOpenDelete, onClose: onCloseDelete } = useDisclosure();
-  const { isOpen: isEditOpen, onOpen: onOpenEdit, onClose: onCloseEdit } = useDisclosure();
 
   const [selectedEntity, setSelectedEntity] = useState('');
   const [selectedVenueIds, setSelectedVenueIds] = useState<string[]>([]);
@@ -152,7 +151,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
 
     const newRole = {
       id: uuid(),
-      name: `Role-${uuid().substring(0, 8)}`,
+      name: `Policy-${uuid().substring(0, 8)}`,
       description: `User role assignment`,
       managementPolicy: selectedPolicy,
       users: [userId],
@@ -165,7 +164,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
       onSuccess: () => {
         toast({
           title: 'Success',
-          description: 'Role scope assigned successfully.',
+          description: 'Policy scope assigned successfully.',
           status: 'success',
           duration: 3000,
           isClosable: true,
@@ -194,7 +193,11 @@ export const ManagementRolesTable = ({ userId }: Props) => {
   const openEdit = (role: ManagementRole) => {
     setRoleToEdit(role);
     setEditPolicyId(role.managementPolicy);
-    onOpenEdit();
+  };
+
+  const cancelEdit = () => {
+    setRoleToEdit(null);
+    setEditPolicyId('');
   };
 
   const handleDelete = () => {
@@ -206,7 +209,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
         onCloseDelete();
         toast({
           title: 'Success',
-          description: 'Role scope revoked.',
+          description: 'Policy scope revoked.',
           status: 'success',
           duration: 3000,
           isClosable: true,
@@ -245,8 +248,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
       },
       {
         onSuccess: () => {
-          onCloseEdit();
-          setRoleToEdit(null);
+          cancelEdit();
           toast({
             title: 'Success',
             description: 'Access policy updated successfully.',
@@ -326,7 +328,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
   return (
     <Box p={4} borderWidth="1px" borderRadius="lg" bg="white" w="100%">
       <Flex justifyContent="space-between" alignItems="center" mb={4}>
-        <Heading size="sm">Scoped Management Role Assignments</Heading>
+        <Heading size="sm">Scoped Management Policy Assignments</Heading>
         {!showAddForm && (
           <Button
             colorScheme="blue"
@@ -350,8 +352,8 @@ export const ManagementRolesTable = ({ userId }: Props) => {
             <Tr>
               <Th>Entity</Th>
               <Th>Venue</Th>
-              <Th>Assigned Role (Policy)</Th>
-              <Th w="96px" />
+              <Th>Assigned Policy</Th>
+              <Th w="190px" />
             </Tr>
           </Thead>
           <Tbody>
@@ -359,20 +361,51 @@ export const ManagementRolesTable = ({ userId }: Props) => {
               <Tr key={role.id}>
                 <Td>{getEntityName(role.entity)}</Td>
                 <Td>{getVenueName(role.venue)}</Td>
-                <Td>{getPolicyName(role.managementPolicy)}</Td>
+                <Td>
+                  {roleToEdit?.id === role.id ? (
+                    <Select
+                      size="sm"
+                      value={editPolicyId}
+                      onChange={(e) => setEditPolicyId(e.target.value)}
+                    >
+                      {policies?.map((policy) => (
+                        <option key={policy.id} value={policy.id}>
+                          {policy.name}
+                        </option>
+                      ))}
+                    </Select>
+                  ) : (
+                    getPolicyName(role.managementPolicy)
+                  )}
+                </Td>
                 <Td>
                   <Flex gap={2} justify="flex-end">
+                    {roleToEdit?.id === role.id ? (
+                      <>
+                        <Button
+                          colorScheme="blue"
+                          size="sm"
+                          onClick={handleEdit}
+                          isLoading={updateRoleMutation.isLoading}
+                        >
+                          Save
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={cancelEdit}>
+                          Cancel
+                        </Button>
+                      </>
+                    ) : (
+                      <IconButton
+                        aria-label="Edit policy"
+                        colorScheme="blue"
+                        variant="ghost"
+                        size="sm"
+                        icon={<PencilSimple size={18} />}
+                        onClick={() => openEdit(role)}
+                      />
+                    )}
                     <IconButton
-                      aria-label="Edit role"
-                      colorScheme="blue"
-                      variant="ghost"
-                      size="sm"
-                      icon={<PencilSimple size={18} />}
-                      onClick={() => openEdit(role)}
-                      isLoading={updateRoleMutation.isLoading && roleToEdit?.id === role.id}
-                    />
-                    <IconButton
-                      aria-label="Revoke role"
+                      aria-label="Remove policy"
                       colorScheme="red"
                       size="sm"
                       icon={<Trash size={18} />}
@@ -465,7 +498,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
             </FormControl>
 
             <FormControl maxW="240px" isRequired>
-              <FormLabel fontSize="xs">Role</FormLabel>
+              <FormLabel fontSize="xs">Policy</FormLabel>
               <Flex align="center" gap={1}>
                 <Select
                   size="sm"
@@ -479,7 +512,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
                   ))}
                 </Select>
                 <IconButton
-                  aria-label="View role details"
+                  aria-label="View policy details"
                   icon={<Info size={18} />}
                   size="sm"
                   variant="ghost"
@@ -511,7 +544,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
       <Modal isOpen={isInfoOpen} onClose={onCloseInfo} size="sm">
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Role Details: {currentPolicy?.name}</ModalHeader>
+          <ModalHeader>Policy Details: {currentPolicy?.name}</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
             {currentPolicy?.description && (
@@ -569,63 +602,6 @@ export const ManagementRolesTable = ({ userId }: Props) => {
         </ModalContent>
       </Modal>
 
-      <Modal
-        isOpen={isEditOpen}
-        onClose={() => {
-          onCloseEdit();
-          setRoleToEdit(null);
-        }}
-        isCentered
-        size="sm"
-      >
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Edit Access Policy</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            {roleToEdit && (
-              <>
-                <Box fontSize="sm" color="gray.700" mb={4}>
-                  <Text><b>Entity:</b> {getEntityName(roleToEdit.entity)}</Text>
-                  <Text><b>Venue:</b> {getVenueName(roleToEdit.venue)}</Text>
-                </Box>
-                <FormControl isRequired>
-                  <FormLabel fontSize="sm">Assigned Role (Policy)</FormLabel>
-                  <Select
-                    size="sm"
-                    value={editPolicyId}
-                    onChange={(e) => setEditPolicyId(e.target.value)}
-                  >
-                    {policies?.map((policy) => (
-                      <option key={policy.id} value={policy.id}>
-                        {policy.name}
-                      </option>
-                    ))}
-                  </Select>
-                </FormControl>
-              </>
-            )}
-          </ModalBody>
-          <ModalFooter>
-            <Button
-              mr={3}
-              onClick={() => {
-                onCloseEdit();
-                setRoleToEdit(null);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              colorScheme="blue"
-              onClick={handleEdit}
-              isLoading={updateRoleMutation.isLoading}
-            >
-              Save
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
     </Box>
   );
 };
