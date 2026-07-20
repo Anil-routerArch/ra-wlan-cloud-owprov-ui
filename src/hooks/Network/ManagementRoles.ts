@@ -36,6 +36,18 @@ export const useCreateManagementRole = () => {
   });
 };
 
+const updateManagementRole = async (role: ManagementRole) =>
+  axiosProv.put(`managementRole/${role.id}`, role);
+
+export const useUpdateManagementRole = () => {
+  const queryClient = useQueryClient();
+  return useMutation(updateManagementRole, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['managementRoles']);
+    },
+  });
+};
+
 const deleteManagementRole = async (roleId: string) =>
   axiosProv.delete(`managementRole/${roleId}`);
 

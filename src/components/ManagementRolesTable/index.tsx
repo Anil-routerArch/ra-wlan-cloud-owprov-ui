@@ -35,20 +35,21 @@ import {
   MenuItem,
   MenuDivider,
 } from '@chakra-ui/react';
-import { Trash, Plus, Info, CaretDown } from '@phosphor-icons/react';
+import { Trash, Plus, Info, CaretDown, PencilSimple } from '@phosphor-icons/react';
 import { useTranslation } from 'react-i18next';
 import { v4 as uuid } from 'uuid';
 import { useAuth } from 'contexts/AuthProvider';
 import {
   useGetManagementRoles,
   useCreateManagementRole,
+  useUpdateManagementRole,
   useDeleteManagementRole,
   useGetEntities,
   useGetVenues,
   useGetManagementPolicies,
+  ManagementRole,
 } from 'hooks/Network/ManagementRoles';
 import { getApiErrorMessage } from 'utils/apiErrorMessage';
-
 type Props = {
   userId: string;
 };
@@ -60,12 +61,15 @@ export const ManagementRolesTable = ({ userId }: Props) => {
   const isRoot = user?.userRole === 'root' || user?.userRole === 'system';
   const { isOpen: isInfoOpen, onOpen: onOpenInfo, onClose: onCloseInfo } = useDisclosure();
   const { isOpen: isDeleteOpen, onOpen: onOpenDelete, onClose: onCloseDelete } = useDisclosure();
+  const { isOpen: isEditOpen, onOpen: onOpenEdit, onClose: onCloseEdit } = useDisclosure();
 
   const [selectedEntity, setSelectedEntity] = useState('');
   const [selectedVenueIds, setSelectedVenueIds] = useState<string[]>([]);
   const [selectedPolicy, setSelectedPolicy] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [roleToDelete, setRoleToDelete] = useState<{ id: string; entity: string; venue: string; policy: string } | null>(null);
+  const [roleToEdit, setRoleToEdit] = useState<ManagementRole | null>(null);
+  const [editPolicyId, setEditPolicyId] = useState('');
 
   const { data: roles, isLoading: rolesLoading, error: rolesError } = useGetManagementRoles();
   const { data: entities, isLoading: entitiesLoading } = useGetEntities();
@@ -73,6 +77,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
   const { data: policies, isLoading: policiesLoading } = useGetManagementPolicies();
 
   const createRoleMutation = useCreateManagementRole();
+  const updateRoleMutation = useUpdateManagementRole();
   const deleteRoleMutation = useDeleteManagementRole();
 
   const userRoles = roles ? roles.filter(role => Array.isArray(role.users) && role.users.includes(userId)) : [];
@@ -186,6 +191,12 @@ export const ManagementRolesTable = ({ userId }: Props) => {
     onOpenDelete();
   };
 
+  const openEdit = (role: ManagementRole) => {
+    setRoleToEdit(role);
+    setEditPolicyId(role.managementPolicy);
+    onOpenEdit();
+  };
+
   const handleDelete = () => {
     if (!roleToDelete) return;
 
@@ -212,6 +223,49 @@ export const ManagementRolesTable = ({ userId }: Props) => {
         });
       },
     });
+  };
+
+  const handleEdit = () => {
+    if (!roleToEdit) return;
+    if (!editPolicyId) {
+      toast({
+        title: 'Error',
+        description: 'Please select a policy.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    updateRoleMutation.mutate(
+      {
+        ...roleToEdit,
+        managementPolicy: editPolicyId,
+      },
+      {
+        onSuccess: () => {
+          onCloseEdit();
+          setRoleToEdit(null);
+          toast({
+            title: 'Success',
+            description: 'Access policy updated successfully.',
+            status: 'success',
+            duration: 3000,
+            isClosable: true,
+          });
+        },
+        onError: (e: any) => {
+          toast({
+            title: 'Error',
+            description: getApiErrorMessage(e, 'We could not update this access policy.'),
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+          });
+        },
+      }
+    );
   };
 
   const getEntityName = (id: string) => {
@@ -297,7 +351,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
               <Th>Entity</Th>
               <Th>Venue</Th>
               <Th>Assigned Role (Policy)</Th>
-              <Th w="50px" />
+              <Th w="96px" />
             </Tr>
           </Thead>
           <Tbody>
@@ -307,19 +361,30 @@ export const ManagementRolesTable = ({ userId }: Props) => {
                 <Td>{getVenueName(role.venue)}</Td>
                 <Td>{getPolicyName(role.managementPolicy)}</Td>
                 <Td>
-                  <IconButton
-                    aria-label="Revoke role"
-                    colorScheme="red"
-                    size="sm"
-                    icon={<Trash size={18} />}
-                    onClick={() => confirmDelete({
-                      id: role.id,
-                      entity: getEntityName(role.entity),
-                      venue: getVenueName(role.venue),
-                      policy: getPolicyName(role.managementPolicy),
-                    })}
-                    isLoading={deleteRoleMutation.isLoading}
-                  />
+                  <Flex gap={2} justify="flex-end">
+                    <IconButton
+                      aria-label="Edit role"
+                      colorScheme="blue"
+                      variant="ghost"
+                      size="sm"
+                      icon={<PencilSimple size={18} />}
+                      onClick={() => openEdit(role)}
+                      isLoading={updateRoleMutation.isLoading && roleToEdit?.id === role.id}
+                    />
+                    <IconButton
+                      aria-label="Revoke role"
+                      colorScheme="red"
+                      size="sm"
+                      icon={<Trash size={18} />}
+                      onClick={() => confirmDelete({
+                        id: role.id,
+                        entity: getEntityName(role.entity),
+                        venue: getVenueName(role.venue),
+                        policy: getPolicyName(role.managementPolicy),
+                      })}
+                      isLoading={deleteRoleMutation.isLoading}
+                    />
+                  </Flex>
                 </Td>
               </Tr>
             ))}
@@ -499,6 +564,64 @@ export const ManagementRolesTable = ({ userId }: Props) => {
             </Button>
             <Button colorScheme="red" onClick={handleDelete} isLoading={deleteRoleMutation.isLoading}>
               Remove
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      <Modal
+        isOpen={isEditOpen}
+        onClose={() => {
+          onCloseEdit();
+          setRoleToEdit(null);
+        }}
+        isCentered
+        size="sm"
+      >
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Edit Access Policy</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            {roleToEdit && (
+              <>
+                <Box fontSize="sm" color="gray.700" mb={4}>
+                  <Text><b>Entity:</b> {getEntityName(roleToEdit.entity)}</Text>
+                  <Text><b>Venue:</b> {getVenueName(roleToEdit.venue)}</Text>
+                </Box>
+                <FormControl isRequired>
+                  <FormLabel fontSize="sm">Assigned Role (Policy)</FormLabel>
+                  <Select
+                    size="sm"
+                    value={editPolicyId}
+                    onChange={(e) => setEditPolicyId(e.target.value)}
+                  >
+                    {policies?.map((policy) => (
+                      <option key={policy.id} value={policy.id}>
+                        {policy.name}
+                      </option>
+                    ))}
+                  </Select>
+                </FormControl>
+              </>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              mr={3}
+              onClick={() => {
+                onCloseEdit();
+                setRoleToEdit(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              colorScheme="blue"
+              onClick={handleEdit}
+              isLoading={updateRoleMutation.isLoading}
+            >
+              Save
             </Button>
           </ModalFooter>
         </ModalContent>
