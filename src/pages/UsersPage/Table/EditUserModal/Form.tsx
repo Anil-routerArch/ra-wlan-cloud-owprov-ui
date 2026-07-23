@@ -76,7 +76,6 @@ const UpdateUserForm = ({ editing, isOpen, onClose, selectedUser, formRef, defau
     { value: 'installer', label: 'Installer' },
     { value: 'noc', label: 'NOC' },
     ...(user?.userRole === 'root' ? [{ value: 'root', label: 'Root' }] : []),
-    { value: 'system', label: 'System' },
   ];
 
   useEffect(() => {

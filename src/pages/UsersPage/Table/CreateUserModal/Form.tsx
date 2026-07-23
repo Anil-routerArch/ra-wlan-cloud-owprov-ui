@@ -109,7 +109,6 @@ const CreateUserForm = ({ isOpen, onClose, formRef }: Props) => {
     { value: 'installer', label: 'Installer' },
     { value: 'noc', label: 'NOC' },
     ...(user?.userRole === 'root' ? [{ value: 'root', label: 'Root' }] : []),
-    { value: 'system', label: 'System' },
   ];
 
   useEffect(() => {
