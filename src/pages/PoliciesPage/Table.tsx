@@ -40,7 +40,7 @@ import { getApiErrorMessage } from 'utils/apiErrorMessage';
 const PolicyTable = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const isRoot = user?.userRole === 'root' || user?.userRole === 'system';
+  const isRoot = user?.userRole === 'root';
   const toast = useToast();
   const [editPolicy, setEditPolicy] = useState<ManagementPolicy | null>(null);
   const [deletePolicy, setDeletePolicy] = useState<ManagementPolicy | null>(null);

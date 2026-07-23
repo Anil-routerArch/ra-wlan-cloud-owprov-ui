@@ -49,7 +49,7 @@ type Props = {
 const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const isRoot = user?.userRole === 'root' || user?.userRole === 'system';
+  const isRoot = user?.userRole === 'root';
   const toast = useToast();
   const updatePolicyMutation = useUpdateManagementPolicy();
   const panelBg = useColorModeValue('white', 'gray.700');
