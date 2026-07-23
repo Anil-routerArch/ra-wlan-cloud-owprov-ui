@@ -284,7 +284,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
   };
 
   const getVenueName = (id: string) => {
-    if (!id) return 'Entity';
+    if (!id) return 'Entity-wide';
     const found = venues?.find(v => v.id === id);
     return found ? found.name : id;
   };
@@ -295,25 +295,26 @@ export const ManagementRolesTable = ({ userId }: Props) => {
   };
 
   const filteredVenues = venues ? venues.filter(v => v.entity === selectedEntity) : [];
-  const allFilteredVenueIds = filteredVenues.map((venue) => venue.id);
-  const allVenuesSelected =
-    filteredVenues.length > 0 && allFilteredVenueIds.every((venueId) => selectedVenueIds.includes(venueId));
 
   const venueSelectionLabel = () => {
-    if (selectedVenueIds.length === 0) return 'Entity only';
-    if (allVenuesSelected) return 'All venues';
+    if (selectedVenueIds.length === 0) return 'Entity-wide';
     if (selectedVenueIds.length === 1) {
       return getVenueName(selectedVenueIds[0]);
     }
     return `${selectedVenueIds.length} venues selected`;
   };
 
-  const setEntityOnly = () => setSelectedVenueIds([]);
-  const setAllVenues = () => setSelectedVenueIds(allFilteredVenueIds);
+  const setEntityWide = () => setSelectedVenueIds([]);
   const toggleVenueSelection = (venueId: string) => {
-    setSelectedVenueIds((current) =>
-      current.includes(venueId) ? current.filter((id) => id !== venueId) : [...current, venueId]
-    );
+    setSelectedVenueIds((current) => {
+      const next = current.includes(venueId)
+        ? current.filter((id) => id !== venueId)
+        : [...current, venueId];
+      if (filteredVenues.length > 0 && filteredVenues.every((v) => next.includes(v.id))) {
+        return [];
+      }
+      return next;
+    });
   };
 
   if (rolesLoading || entitiesLoading || venuesLoading || policiesLoading) {
@@ -476,14 +477,9 @@ export const ManagementRolesTable = ({ userId }: Props) => {
                   {venueSelectionLabel()}
                 </MenuButton>
                 <MenuList minW="260px" maxH="280px" overflowY="auto" p={2} bg={panelBg} borderColor={borderColor}>
-                  <MenuItem closeOnSelect={false} onClick={setEntityOnly}>
+                  <MenuItem closeOnSelect={false} onClick={setEntityWide}>
                     <Checkbox isChecked={selectedVenueIds.length === 0} pointerEvents="none" mr={2}>
-                      Entity only
-                    </Checkbox>
-                  </MenuItem>
-                  <MenuItem closeOnSelect={false} onClick={setAllVenues} isDisabled={filteredVenues.length === 0}>
-                    <Checkbox isChecked={allVenuesSelected} pointerEvents="none" mr={2}>
-                      Select all venues
+                      Entity-wide
                     </Checkbox>
                   </MenuItem>
                   <MenuDivider />
