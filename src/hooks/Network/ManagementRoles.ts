@@ -16,11 +16,14 @@ export type ManagementRole = {
   modified?: number;
 };
 
-const getManagementRoles = async () =>
-  axiosProv.get('managementRole').then(({ data }) => data.roles as ManagementRole[]);
+const getManagementRoles = async (userId?: string) =>
+  axiosProv
+    .get('managementRole', { params: userId ? { userId } : undefined })
+    .then(({ data }) => data.roles as ManagementRole[]);
 
-export const useGetManagementRoles = () =>
-  useQuery(['managementRoles'], getManagementRoles, {
+export const useGetManagementRoles = (userId?: string) =>
+  useQuery(['managementRoles', userId], () => getManagementRoles(userId), {
+    enabled: userId !== undefined ? !!userId : true,
     staleTime: 1000 * 60 * 5,
   });
 

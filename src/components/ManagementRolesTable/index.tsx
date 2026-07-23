@@ -78,7 +78,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
   const [roleToEdit, setRoleToEdit] = useState<ManagementRole | null>(null);
   const [editPolicyId, setEditPolicyId] = useState('');
 
-  const { data: roles, isLoading: rolesLoading, error: rolesError } = useGetManagementRoles();
+  const { data: roles, isLoading: rolesLoading, error: rolesError } = useGetManagementRoles(userId);
   const { data: entities, isLoading: entitiesLoading } = useGetEntities();
   const { data: venues, isLoading: venuesLoading } = useGetVenues();
   const { data: policies, isLoading: policiesLoading } = useGetManagementPolicies();
@@ -87,7 +87,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
   const updateRoleMutation = useUpdateManagementRole();
   const deleteRoleMutation = useDeleteManagementRole();
 
-  const userRoles = roles ? roles.filter(role => Array.isArray(role.users) && role.users.includes(userId)) : [];
+  const userRoles = roles ?? [];
   const currentPolicy = policies?.find(p => p.id === selectedPolicy);
 
   const getPolicyPermissions = (policy: any) => {
