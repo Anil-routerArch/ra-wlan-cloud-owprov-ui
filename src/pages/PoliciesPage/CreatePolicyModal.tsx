@@ -22,6 +22,8 @@ import {
   Divider,
   Box,
   useColorModeValue,
+  Checkbox,
+  HStack,
 } from '@chakra-ui/react';
 import { Plus } from '@phosphor-icons/react';
 import { useTranslation } from 'react-i18next';
@@ -40,7 +42,7 @@ const RESOURCES = [
   'device',
 ];
 
-const ACCESS_LEVELS = ['NOACCESS', 'READ', 'CREATE', 'MODIFY', 'DELETE', 'FULL'];
+const ACTIONS = ['READ', 'CREATE', 'MODIFY', 'DELETE', 'FULL'];
 
 const CreatePolicyModal = () => {
   const { t } = useTranslation();
@@ -57,16 +59,42 @@ const CreatePolicyModal = () => {
   const [description, setDescription] = useState('');
   const [preset, setPreset] = useState('full'); // 'full', 'read', 'custom'
 
-  // Custom resource states
-  const [customAccess, setCustomAccess] = useState<Record<string, string>>(
-    RESOURCES.reduce((acc, r) => ({ ...acc, [r]: 'READ' }), {}),
+  // Custom resource states: maps resource to array of selected actions
+  const [customAccess, setCustomAccess] = useState<Record<string, string[]>>(
+    RESOURCES.reduce((acc, r) => ({ ...acc, [r]: ['READ'] }), {}),
   );
 
-  const handleAccessChange = (resource: string, access: string) => {
-    setCustomAccess((prev) => ({
-      ...prev,
-      [resource]: access,
-    }));
+  const toggleAction = (resource: string, action: string) => {
+    setCustomAccess((prev) => {
+      const current = prev[resource] || [];
+      if (action === 'FULL') {
+        const isFullSelected = current.includes('FULL');
+        return {
+          ...prev,
+          [resource]: isFullSelected ? [] : ['READ', 'CREATE', 'MODIFY', 'DELETE', 'FULL'],
+        };
+      }
+
+      let updated: string[];
+      if (current.includes(action)) {
+        updated = current.filter((a) => a !== action && a !== 'FULL');
+      } else {
+        updated = [...current.filter((a) => a !== 'FULL'), action];
+        if (
+          updated.includes('READ') &&
+          updated.includes('CREATE') &&
+          updated.includes('MODIFY') &&
+          updated.includes('DELETE')
+        ) {
+          updated.push('FULL');
+        }
+      }
+
+      return {
+        ...prev,
+        [resource]: updated,
+      };
+    });
   };
 
   const handleSave = () => {
@@ -98,20 +126,21 @@ const CreatePolicyModal = () => {
         },
       ];
     } else {
-      // Group by access level to make payload compact
+      // Group by access permissions list to make payload compact
       const accessGroups: Record<string, string[]> = {};
-      Object.entries(customAccess).forEach(([resource, access]) => {
-        if (access !== 'NOACCESS') {
-          if (!accessGroups[access]) {
-            accessGroups[access] = [];
+      Object.entries(customAccess).forEach(([resource, accessList]) => {
+        if (accessList && accessList.length > 0) {
+          const key = [...accessList].sort().join(',');
+          if (!accessGroups[key]) {
+            accessGroups[key] = [];
           }
-          accessGroups[access].push(resource);
+          accessGroups[key].push(resource);
         }
       });
 
-      entries = Object.entries(accessGroups).map(([access, resources]) => ({
+      entries = Object.entries(accessGroups).map(([key, resources]) => ({
         resources,
-        access: [access],
+        access: key.split(','),
       }));
     }
 
@@ -152,7 +181,7 @@ const CreatePolicyModal = () => {
     setName('');
     setDescription('');
     setPreset('full');
-    setCustomAccess(RESOURCES.reduce((acc, r) => ({ ...acc, [r]: 'READ' }), {}));
+    setCustomAccess(RESOURCES.reduce((acc, r) => ({ ...acc, [r]: ['READ'] }), {}));
   };
 
   return (
@@ -161,7 +190,7 @@ const CreatePolicyModal = () => {
         {t('crud.create')}
       </Button>
 
-      <Modal isOpen={isOpen} onClose={onClose} size="lg">
+      <Modal isOpen={isOpen} onClose={onClose} size="xl">
         <ModalOverlay />
         <ModalContent bg={panelBg}>
           <ModalHeader>{t('crud.create_object', { obj: t('policies.one') })}</ModalHeader>
@@ -204,12 +233,12 @@ const CreatePolicyModal = () => {
 
             {preset === 'custom' && (
               <Box border="1px" borderColor={panelBorder} borderRadius="md" p={3} bg={subtleBg}>
-                <Grid templateColumns="1fr 1fr" gap={2} alignItems="center">
+                <Grid templateColumns="160px 1fr" gap={3} alignItems="center">
                   <GridItem fontWeight="bold" fontSize="xs" color={mutedText}>
                     Resource Name
                   </GridItem>
                   <GridItem fontWeight="bold" fontSize="xs" color={mutedText}>
-                    Access Level
+                    Allowed Actions
                   </GridItem>
                   {RESOURCES.map((resource) => (
                     <React.Fragment key={resource}>
@@ -219,18 +248,24 @@ const CreatePolicyModal = () => {
                         </Text>
                       </GridItem>
                       <GridItem>
-                        <Select
-                          size="xs"
-                          value={customAccess[resource]}
-                          bg={panelBg}
-                          onChange={(e) => handleAccessChange(resource, e.target.value)}
-                        >
-                          {ACCESS_LEVELS.map((lvl) => (
-                            <option key={lvl} value={lvl}>
-                              {lvl}
-                            </option>
-                          ))}
-                        </Select>
+                        <HStack spacing={3} flexWrap="wrap">
+                          {ACTIONS.map((action) => {
+                            const isChecked = (customAccess[resource] || []).includes(action);
+                            return (
+                              <Checkbox
+                                key={action}
+                                size="sm"
+                                colorScheme={action === 'FULL' ? 'purple' : 'blue'}
+                                isChecked={isChecked}
+                                onChange={() => toggleAction(resource, action)}
+                              >
+                                <Text fontSize="xs" fontWeight={action === 'FULL' ? 'bold' : 'normal'}>
+                                  {action}
+                                </Text>
+                              </Checkbox>
+                            );
+                          })}
+                        </HStack>
                       </GridItem>
                     </React.Fragment>
                   ))}

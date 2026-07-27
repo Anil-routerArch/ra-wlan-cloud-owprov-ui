@@ -21,6 +21,8 @@ import {
   Divider,
   Box,
   useColorModeValue,
+  Checkbox,
+  HStack,
 } from '@chakra-ui/react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from 'contexts/AuthProvider';
@@ -38,7 +40,7 @@ const RESOURCES = [
   'device',
 ];
 
-const ACCESS_LEVELS = ['NOACCESS', 'READ', 'CREATE', 'MODIFY', 'DELETE', 'FULL'];
+const ACTIONS = ['READ', 'CREATE', 'MODIFY', 'DELETE', 'FULL'];
 
 type Props = {
   isOpen: boolean;
@@ -62,9 +64,9 @@ const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
   const [description, setDescription] = useState('');
   const [preset, setPreset] = useState('full'); // 'full', 'read', 'custom'
 
-  // Custom resource states
-  const [customAccess, setCustomAccess] = useState<Record<string, string>>(
-    RESOURCES.reduce((acc, r) => ({ ...acc, [r]: 'READ' }), {}),
+  // Custom resource states: maps resource to array of selected actions
+  const [customAccess, setCustomAccess] = useState<Record<string, string[]>>(
+    RESOURCES.reduce((acc, r) => ({ ...acc, [r]: ['READ'] }), {}),
   );
 
   // Sync state with selected policy
@@ -79,7 +81,7 @@ const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
         if (entries.length === 0) {
           return {
             detectedPreset: 'read',
-            mapping: RESOURCES.reduce((acc, r) => ({ ...acc, [r]: 'NOACCESS' }), {}),
+            mapping: RESOURCES.reduce((acc, r) => ({ ...acc, [r]: [] }), {} as Record<string, string[]>),
           };
         }
 
@@ -90,7 +92,7 @@ const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
         if (isFull) {
           return {
             detectedPreset: 'full',
-            mapping: RESOURCES.reduce((acc, r) => ({ ...acc, [r]: 'FULL' }), {}),
+            mapping: RESOURCES.reduce((acc, r) => ({ ...acc, [r]: ['READ', 'CREATE', 'MODIFY', 'DELETE', 'FULL'] }), {}),
           };
         }
 
@@ -101,16 +103,16 @@ const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
         if (isRead) {
           return {
             detectedPreset: 'read',
-            mapping: RESOURCES.reduce((acc, r) => ({ ...acc, [r]: 'READ' }), {}),
+            mapping: RESOURCES.reduce((acc, r) => ({ ...acc, [r]: ['READ'] }), {}),
           };
         }
 
         // Custom mapping
-        const mapping = RESOURCES.reduce((acc, r) => ({ ...acc, [r]: 'NOACCESS' }), {} as Record<string, string>);
+        const mapping = RESOURCES.reduce((acc, r) => ({ ...acc, [r]: [] }), {} as Record<string, string[]>);
         entries.forEach((entry) => {
-          const accessLvl = entry.access[0];
+          const accessList = entry.access || [];
           entry.resources.forEach((res: string) => {
-            mapping[res] = accessLvl;
+            mapping[res] = Array.from(new Set([...(mapping[res] || []), ...accessList]));
           });
         });
         return { detectedPreset: 'custom', mapping };
@@ -122,11 +124,38 @@ const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
     }
   }, [policy, isOpen]);
 
-  const handleAccessChange = (resource: string, access: string) => {
-    setCustomAccess((prev) => ({
-      ...prev,
-      [resource]: access,
-    }));
+  const toggleAction = (resource: string, action: string) => {
+    if (!isRoot) return;
+    setCustomAccess((prev) => {
+      const current = prev[resource] || [];
+      if (action === 'FULL') {
+        const isFullSelected = current.includes('FULL');
+        return {
+          ...prev,
+          [resource]: isFullSelected ? [] : ['READ', 'CREATE', 'MODIFY', 'DELETE', 'FULL'],
+        };
+      }
+
+      let updated: string[];
+      if (current.includes(action)) {
+        updated = current.filter((a) => a !== action && a !== 'FULL');
+      } else {
+        updated = [...current.filter((a) => a !== 'FULL'), action];
+        if (
+          updated.includes('READ') &&
+          updated.includes('CREATE') &&
+          updated.includes('MODIFY') &&
+          updated.includes('DELETE')
+        ) {
+          updated.push('FULL');
+        }
+      }
+
+      return {
+        ...prev,
+        [resource]: updated,
+      };
+    });
   };
 
   const handleSave = () => {
@@ -159,18 +188,19 @@ const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
       ];
     } else {
       const accessGroups: Record<string, string[]> = {};
-      Object.entries(customAccess).forEach(([resource, access]) => {
-        if (access !== 'NOACCESS') {
-          if (!accessGroups[access]) {
-            accessGroups[access] = [];
+      Object.entries(customAccess).forEach(([resource, accessList]) => {
+        if (accessList && accessList.length > 0) {
+          const key = [...accessList].sort().join(',');
+          if (!accessGroups[key]) {
+            accessGroups[key] = [];
           }
-          accessGroups[access].push(resource);
+          accessGroups[key].push(resource);
         }
       });
 
-      entries = Object.entries(accessGroups).map(([access, resources]) => ({
+      entries = Object.entries(accessGroups).map(([key, resources]) => ({
         resources,
-        access: [access],
+        access: key.split(','),
       }));
     }
 
@@ -207,7 +237,7 @@ const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="lg">
+    <Modal isOpen={isOpen} onClose={onClose} size="xl">
       <ModalOverlay />
       <ModalContent bg={panelBg}>
         <ModalHeader>
@@ -251,7 +281,12 @@ const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
           </Heading>
           <FormControl mb={4}>
             <FormLabel fontSize="sm">Access Profile Preset</FormLabel>
-            <Select isDisabled={!isRoot} value={preset} onChange={(e) => setPreset(e.target.value)} bg={panelBg}>
+            <Select
+              isDisabled={!isRoot}
+              value={preset}
+              onChange={(e) => setPreset(e.target.value)}
+              bg={panelBg}
+            >
               <option value="full">Full Access (All Permissions)</option>
               <option value="read">Read-Only (All View Permissions)</option>
               <option value="custom">Custom Permissions Grid</option>
@@ -260,12 +295,12 @@ const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
 
           {preset === 'custom' && (
             <Box border="1px" borderColor={panelBorder} borderRadius="md" p={3} bg={subtleBg}>
-              <Grid templateColumns="1fr 1fr" gap={2} alignItems="center">
+              <Grid templateColumns="160px 1fr" gap={3} alignItems="center">
                 <GridItem fontWeight="bold" fontSize="xs" color={mutedText}>
                   Resource Name
                 </GridItem>
                 <GridItem fontWeight="bold" fontSize="xs" color={mutedText}>
-                  Access Level
+                  Allowed Actions
                 </GridItem>
                 {RESOURCES.map((resource) => (
                   <React.Fragment key={resource}>
@@ -275,19 +310,25 @@ const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
                       </Text>
                     </GridItem>
                     <GridItem>
-                      <Select
-                        isDisabled={!isRoot}
-                        size="xs"
-                        value={customAccess[resource]}
-                        bg={panelBg}
-                        onChange={(e) => handleAccessChange(resource, e.target.value)}
-                      >
-                        {ACCESS_LEVELS.map((lvl) => (
-                          <option key={lvl} value={lvl}>
-                            {lvl}
-                          </option>
-                        ))}
-                      </Select>
+                      <HStack spacing={3} flexWrap="wrap">
+                        {ACTIONS.map((action) => {
+                          const isChecked = (customAccess[resource] || []).includes(action);
+                          return (
+                            <Checkbox
+                              key={action}
+                              size="sm"
+                              isDisabled={!isRoot}
+                              colorScheme={action === 'FULL' ? 'purple' : 'blue'}
+                              isChecked={isChecked}
+                              onChange={() => toggleAction(resource, action)}
+                            >
+                              <Text fontSize="xs" fontWeight={action === 'FULL' ? 'bold' : 'normal'}>
+                                {action}
+                              </Text>
+                            </Checkbox>
+                          );
+                        })}
+                      </HStack>
                     </GridItem>
                   </React.Fragment>
                 ))}
@@ -296,18 +337,12 @@ const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
           )}
         </ModalBody>
         <ModalFooter>
-          {isRoot ? (
-            <>
-              <Button colorScheme="gray" mr={3} onClick={onClose}>
-                {t('common.cancel')}
-              </Button>
-              <Button colorScheme="blue" onClick={handleSave} isLoading={updatePolicyMutation.isLoading}>
-                {t('common.save')}
-              </Button>
-            </>
-          ) : (
-            <Button colorScheme="blue" onClick={onClose}>
-              {t('common.close') || 'Close'}
+          <Button colorScheme="gray" mr={3} onClick={onClose}>
+            {t('common.cancel')}
+          </Button>
+          {isRoot && (
+            <Button colorScheme="blue" onClick={handleSave} isLoading={updatePolicyMutation.isLoading}>
+              {t('common.save')}
             </Button>
           )}
         </ModalFooter>
