@@ -22,10 +22,17 @@ import {
   Divider,
   Box,
   useColorModeValue,
-  Checkbox,
+  Tag,
+  TagLabel,
+  TagCloseButton,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Flex,
   HStack,
 } from '@chakra-ui/react';
-import { Plus } from '@phosphor-icons/react';
+import { Plus, CaretDown } from '@phosphor-icons/react';
 import { useTranslation } from 'react-i18next';
 import { v4 as uuid } from 'uuid';
 import {
@@ -43,6 +50,88 @@ const RESOURCES = [
 ];
 
 const ACTIONS = ['READ', 'CREATE', 'MODIFY', 'DELETE', 'FULL'];
+
+type ResourcePermissionInputProps = {
+  resource: string;
+  selectedActions: string[];
+  onToggle: (resource: string, action: string) => void;
+};
+
+const ResourcePermissionInput = ({
+  resource,
+  selectedActions,
+  onToggle,
+}: ResourcePermissionInputProps) => {
+  const panelBg = useColorModeValue('white', 'gray.700');
+  const panelBorder = useColorModeValue('gray.300', 'gray.600');
+
+  const removeAction = (action: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    onToggle(resource, action);
+  };
+
+  return (
+    <Menu closeOnSelect={false}>
+      <MenuButton
+        as={Box}
+        w="100%"
+        minH="38px"
+        p={1.5}
+        bg={panelBg}
+        border="1px"
+        borderColor={panelBorder}
+        borderRadius="md"
+        cursor="pointer"
+        _hover={{ borderColor: 'blue.400' }}
+      >
+        <Flex align="center" justify="space-between" w="100%">
+          <Flex wrap="wrap" gap={1.5} align="center" flex="1">
+            {selectedActions.length === 0 ? (
+              <Text fontSize="xs" color="gray.400" italic px={1}>
+                No permissions selected (NOACCESS)
+              </Text>
+            ) : (
+              selectedActions.map((action) => (
+                <Tag
+                  key={action}
+                  size="sm"
+                  variant="subtle"
+                  colorScheme={action === 'FULL' ? 'purple' : action === 'DELETE' ? 'red' : 'blue'}
+                  borderRadius="full"
+                >
+                  <TagLabel fontSize="xs" fontWeight="semibold">
+                    {action}
+                  </TagLabel>
+                  <TagCloseButton onClick={(e) => removeAction(action, e)} />
+                </Tag>
+              ))
+            )}
+          </Flex>
+          <CaretDown size={14} color="gray" />
+        </Flex>
+      </MenuButton>
+      <MenuList minW="180px" zIndex={1400} p={1}>
+        {ACTIONS.map((action) => {
+          const isSelected = selectedActions.includes(action);
+          return (
+            <MenuItem
+              key={action}
+              fontSize="xs"
+              onClick={() => onToggle(resource, action)}
+              borderRadius="sm"
+              py={1.5}
+            >
+              <HStack w="100%" justify="space-between">
+                <Text fontWeight={action === 'FULL' ? 'bold' : 'normal'}>{action}</Text>
+                {isSelected && <Text color="blue.400" fontWeight="bold">✓</Text>}
+              </HStack>
+            </MenuItem>
+          );
+        })}
+      </MenuList>
+    </Menu>
+  );
+};
 
 const CreatePolicyModal = () => {
   const { t } = useTranslation();
@@ -238,7 +327,7 @@ const CreatePolicyModal = () => {
                     Resource Name
                   </GridItem>
                   <GridItem fontWeight="bold" fontSize="xs" color={mutedText}>
-                    Allowed Actions
+                    Access Level Permissions
                   </GridItem>
                   {RESOURCES.map((resource) => (
                     <React.Fragment key={resource}>
@@ -248,24 +337,11 @@ const CreatePolicyModal = () => {
                         </Text>
                       </GridItem>
                       <GridItem>
-                        <HStack spacing={3} flexWrap="wrap">
-                          {ACTIONS.map((action) => {
-                            const isChecked = (customAccess[resource] || []).includes(action);
-                            return (
-                              <Checkbox
-                                key={action}
-                                size="sm"
-                                colorScheme={action === 'FULL' ? 'purple' : 'blue'}
-                                isChecked={isChecked}
-                                onChange={() => toggleAction(resource, action)}
-                              >
-                                <Text fontSize="xs" fontWeight={action === 'FULL' ? 'bold' : 'normal'}>
-                                  {action}
-                                </Text>
-                              </Checkbox>
-                            );
-                          })}
-                        </HStack>
+                        <ResourcePermissionInput
+                          resource={resource}
+                          selectedActions={customAccess[resource] || []}
+                          onToggle={toggleAction}
+                        />
                       </GridItem>
                     </React.Fragment>
                   ))}
