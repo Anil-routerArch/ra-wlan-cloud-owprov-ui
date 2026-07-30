@@ -209,8 +209,12 @@ const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
         const mapping = RESOURCES.reduce((acc, r) => ({ ...acc, [r]: [] }), {} as Record<string, string[]>);
         entries.forEach((entry) => {
           const accessList = entry.access || [];
+          const cleanAccess = accessList.includes('FULL') ? ['FULL'] : accessList;
           entry.resources.forEach((res: string) => {
-            mapping[res] = Array.from(new Set([...(mapping[res] || []), ...accessList]));
+            const key = res === 'device' ? 'inventory' : res;
+            if (mapping[key]) {
+              mapping[key] = Array.from(new Set([...(mapping[key] || []), ...cleanAccess]));
+            }
           });
         });
         return { detectedPreset: 'custom', mapping };
@@ -230,22 +234,25 @@ const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
         const isFullSelected = current.includes('FULL');
         return {
           ...prev,
-          [resource]: isFullSelected ? [] : ['READ', 'CREATE', 'MODIFY', 'DELETE', 'FULL'],
+          [resource]: isFullSelected ? [] : ['FULL'],
         };
       }
 
       let updated: string[];
-      if (current.includes(action)) {
-        updated = current.filter((a) => a !== action && a !== 'FULL');
+      if (current.includes('FULL')) {
+        const subActions = ['READ', 'CREATE', 'MODIFY', 'DELETE'];
+        updated = subActions.filter((a) => a !== action);
+      } else if (current.includes(action)) {
+        updated = current.filter((a) => a !== action);
       } else {
-        updated = [...current.filter((a) => a !== 'FULL'), action];
+        updated = [...current, action];
         if (
           updated.includes('READ') &&
           updated.includes('CREATE') &&
           updated.includes('MODIFY') &&
           updated.includes('DELETE')
         ) {
-          updated.push('FULL');
+          updated = ['FULL'];
         }
       }
 
@@ -288,7 +295,8 @@ const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
       const accessGroups: Record<string, string[]> = {};
       Object.entries(customAccess).forEach(([resource, accessList]) => {
         if (accessList && accessList.length > 0) {
-          const key = [...accessList].sort().join(',');
+          const finalAccess = accessList.includes('FULL') ? ['FULL'] : accessList;
+          const key = [...finalAccess].sort().join(',');
           if (!accessGroups[key]) {
             accessGroups[key] = [];
           }

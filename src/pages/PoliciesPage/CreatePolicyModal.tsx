@@ -160,22 +160,25 @@ const CreatePolicyModal = () => {
         const isFullSelected = current.includes('FULL');
         return {
           ...prev,
-          [resource]: isFullSelected ? [] : ['READ', 'CREATE', 'MODIFY', 'DELETE', 'FULL'],
+          [resource]: isFullSelected ? [] : ['FULL'],
         };
       }
 
       let updated: string[];
-      if (current.includes(action)) {
-        updated = current.filter((a) => a !== action && a !== 'FULL');
+      if (current.includes('FULL')) {
+        const subActions = ['READ', 'CREATE', 'MODIFY', 'DELETE'];
+        updated = subActions.filter((a) => a !== action);
+      } else if (current.includes(action)) {
+        updated = current.filter((a) => a !== action);
       } else {
-        updated = [...current.filter((a) => a !== 'FULL'), action];
+        updated = [...current, action];
         if (
           updated.includes('READ') &&
           updated.includes('CREATE') &&
           updated.includes('MODIFY') &&
           updated.includes('DELETE')
         ) {
-          updated.push('FULL');
+          updated = ['FULL'];
         }
       }
 
@@ -219,7 +222,8 @@ const CreatePolicyModal = () => {
       const accessGroups: Record<string, string[]> = {};
       Object.entries(customAccess).forEach(([resource, accessList]) => {
         if (accessList && accessList.length > 0) {
-          const key = [...accessList].sort().join(',');
+          const finalAccess = accessList.includes('FULL') ? ['FULL'] : accessList;
+          const key = [...finalAccess].sort().join(',');
           if (!accessGroups[key]) {
             accessGroups[key] = [];
           }
