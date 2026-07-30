@@ -46,7 +46,7 @@ const RESOURCES = [
   'venue',
   'configuration',
   'managementRole',
-  'device',
+  'inventory',
 ];
 
 const ACTIONS = ['READ', 'CREATE', 'MODIFY', 'DELETE', 'FULL'];
