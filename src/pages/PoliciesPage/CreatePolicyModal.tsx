@@ -47,6 +47,8 @@ const RESOURCES = [
   'configuration',
   'managementRole',
   'inventory',
+  'operator',
+  'subscriber',
 ];
 
 const ACTIONS = ['READ', 'CREATE', 'MODIFY', 'DELETE', 'FULL'];

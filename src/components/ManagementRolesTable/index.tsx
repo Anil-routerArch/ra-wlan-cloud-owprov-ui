@@ -103,7 +103,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
         }
       });
     }
-    const resources = ['entity', 'venue', 'configuration', 'managementRole', 'inventory'];
+    const resources = ['entity', 'venue', 'configuration', 'managementRole', 'inventory', 'operator', 'subscriber'];
     return resources.map(res => ({
       resource: res === 'managementRole' ? 'roles & policies' : res,
       access: map[res] || 'NOACCESS'
