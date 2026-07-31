@@ -103,9 +103,9 @@ export const ManagementRolesTable = ({ userId }: Props) => {
         }
       });
     }
-    const resources = ['entity', 'venue', 'configuration', 'managementRole', 'inventory', 'operator', 'subscriber'];
+    const resources = ['entity', 'venue', 'configuration', 'inventory', 'operator', 'subscriber'];
     return resources.map(res => ({
-      resource: res === 'managementRole' ? 'roles & policies' : res,
+      resource: res,
       access: map[res] || 'NOACCESS'
     }));
   };

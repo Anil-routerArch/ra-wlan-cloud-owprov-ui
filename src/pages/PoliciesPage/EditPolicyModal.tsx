@@ -44,7 +44,6 @@ const RESOURCES = [
   'entity',
   'venue',
   'configuration',
-  'managementRole',
   'inventory',
   'operator',
   'subscriber',
