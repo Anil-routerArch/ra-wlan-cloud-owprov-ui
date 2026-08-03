@@ -1,5 +1,19 @@
 import { describe, it, expect } from 'vitest';
 
+/**
+ * Management Roles Immutability Frontend Validation (Section 6.4)
+ * 
+ * DESCRIPTION:
+ *   Validates that when editing an existing management role in the UI,
+ *   the scope fields (entity, venue, users) are disabled and non-editable, 
+ *   while only the managementPolicy dropdown remains editable.
+ * 
+ * EXPECTED OUTPUT:
+ *   - isEntityEditable === false
+ *   - isVenueEditable === false
+ *   - isUsersEditable === false
+ *   - isPolicyEditable === true
+ */
 describe('Management Role Immutability Frontend Validation', () => {
   it('prevents scope modification fields in role edit form', () => {
     const existingRole = {
