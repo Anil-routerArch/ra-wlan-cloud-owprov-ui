@@ -21,14 +21,18 @@ describe('Policy Resource Picker Alignment (Section 5.1)', () => {
     'inventory',
     'operator',
     'subscriber',
+    'contact',
+    'location',
   ];
 
-  it('includes exactly 6 official resources and excludes legacy device and managementRole', () => {
+  it('includes 8 official resources (including contact and location) and excludes legacy device and managementRole', () => {
     expect(OFFICIAL_RESOURCES).toContain('inventory');
     expect(OFFICIAL_RESOURCES).toContain('operator');
     expect(OFFICIAL_RESOURCES).toContain('subscriber');
+    expect(OFFICIAL_RESOURCES).toContain('contact');
+    expect(OFFICIAL_RESOURCES).toContain('location');
     expect(OFFICIAL_RESOURCES).not.toContain('device');
     expect(OFFICIAL_RESOURCES).not.toContain('managementRole');
-    expect(OFFICIAL_RESOURCES.length).toBe(6);
+    expect(OFFICIAL_RESOURCES.length).toBe(8);
   });
 });

@@ -47,6 +47,8 @@ const RESOURCES = [
   'inventory',
   'operator',
   'subscriber',
+  'contact',
+  'location',
 ];
 
 const ACTIONS = ['READ', 'CREATE', 'MODIFY', 'DELETE', 'FULL'];
