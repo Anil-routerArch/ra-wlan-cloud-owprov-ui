@@ -287,6 +287,8 @@ export const ManagementRolesTable = ({ userId }: Props) => {
     return found ? found.name : id;
   };
 
+  // AI-NOTE: The owprov backend returns individual role objects per venue scope.
+  // Empty venue string '' represents Entity-wide scope, which is rendered as 'Entity-wide'.
   const getVenueName = (id: string) => {
     if (!id) return 'Entity-wide';
     const found = venues?.find(v => v.id === id);
@@ -309,6 +311,9 @@ export const ManagementRolesTable = ({ userId }: Props) => {
   };
 
   const setEntityWide = () => setSelectedVenueIds([]);
+  
+  // AI-NOTE: Selecting all venues intentionally collapses the selection to an empty array [],
+  // which is submitted and rendered as Entity-wide scope per API v2.1 specifications.
   const toggleVenueSelection = (venueId: string) => {
     setSelectedVenueIds((current) => {
       const next = current.includes(venueId)
