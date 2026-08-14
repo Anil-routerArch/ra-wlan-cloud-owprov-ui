@@ -59,7 +59,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
   const { t } = useTranslation();
   const toast = useToast();
   const { user } = useAuth();
-  const isRoot = user?.userRole === 'root' || user?.userRole === 'system';
+  const isRoot = user?.userRole === 'root';
   const panelBg = useColorModeValue('white', 'gray.700');
   const subtleBg = useColorModeValue('gray.50', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'whiteAlpha.200');
