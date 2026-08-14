@@ -181,7 +181,7 @@ const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
         const entries = policy.entries || [];
         if (entries.length === 0) {
           return {
-            detectedPreset: 'read',
+            detectedPreset: 'custom',
             mapping: RESOURCES.reduce((acc, r) => ({ ...acc, [r]: [] }), {} as Record<string, string[]>),
           };
         }
