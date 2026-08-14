@@ -92,25 +92,32 @@ export const ManagementRolesTable = ({ userId }: Props) => {
 
   const getPolicyPermissions = (policy: any) => {
     if (!policy || !Array.isArray(policy.entries)) return [];
-    const map: Record<string, string> = {};
+    const map: Record<string, string[]> = {};
     const resources: string[] = [];
 
     policy.entries.forEach((entry: any) => {
-      const access = entry.access?.[0] || 'NOACCESS';
+      const accesses = Array.isArray(entry.access) ? entry.access : (entry.access ? [entry.access] : ['NOACCESS']);
       if (Array.isArray(entry.resources)) {
         entry.resources.forEach((res: string) => {
           const displayResource = res === 'device' ? 'inventory' : res;
           if (!resources.includes(displayResource)) {
             resources.push(displayResource);
           }
-          map[displayResource] = access;
+          if (!map[displayResource]) {
+            map[displayResource] = [];
+          }
+          accesses.forEach((acc: string) => {
+            if (!map[displayResource].includes(acc)) {
+              map[displayResource].push(acc);
+            }
+          });
         });
       }
     });
 
     return resources.map(res => ({
       resource: res,
-      access: map[res] || 'NOACCESS'
+      access: map[res] && map[res].length > 0 ? map[res].join(', ') : 'NOACCESS'
     }));
   };
 
