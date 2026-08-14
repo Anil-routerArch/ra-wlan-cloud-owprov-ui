@@ -40,7 +40,7 @@ import {
 } from 'hooks/Network/ManagementRoles';
 import { getApiErrorMessage } from 'utils/apiErrorMessage';
 
-const RESOURCES = [
+export const RESOURCES = [
   'entity',
   'venue',
   'configuration',

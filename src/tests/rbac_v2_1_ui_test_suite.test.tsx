@@ -5,6 +5,8 @@
  */
 
 import { describe, it, expect } from 'vitest';
+import { RESOURCES as PRODUCTION_POLICY_RESOURCES } from 'pages/PoliciesPage/CreatePolicyModal';
+import { UserRole } from 'models/User';
 
 export interface UserSession {
   id: string;
@@ -153,5 +155,15 @@ describe('Hierarchical RBAC UI Test Suite (v2.1 Baseline)', () => {
     };
     const formatted = formatErrorMessage(1064, 'Invalid entity type.');
     expect(formatted).toContain('An entity can only be created under the Root Entity or under an Operator Entity');
+  });
+
+  it('TC-UI-09: Production Policy Modal RESOURCES export contains core RBAC resource types', () => {
+    expect(PRODUCTION_POLICY_RESOURCES).toContain('entity');
+    expect(PRODUCTION_POLICY_RESOURCES).toContain('venue');
+    expect(PRODUCTION_POLICY_RESOURCES).toContain('configuration');
+    expect(PRODUCTION_POLICY_RESOURCES).toContain('inventory');
+    expect(PRODUCTION_POLICY_RESOURCES).toContain('operator');
+    expect(PRODUCTION_POLICY_RESOURCES).toContain('subscriber');
+    expect(PRODUCTION_POLICY_RESOURCES).toContain('contact');
   });
 });
