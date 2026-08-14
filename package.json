@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "test": "vitest run",
     "format": "prettier --write \"src/**/*x.{ts,tsx,js,jsx}\"",
     "analyze": "source-map-explorer 'build/static/js/*.js'",
     "lint": "TIMING=1 eslint \"src/**/*.{ts,tsx,js,jsx}\" --fix",
@@ -106,7 +107,8 @@
     "lint-staged": "^13.2.1",
     "prettier": "^2.8.7",
     "vite-plugin-pwa": "^0.14.7",
-    "vite-tsconfig-paths": "^4.2.0"
+    "vite-tsconfig-paths": "^4.2.0",
+    "vitest": "^0.34.6"
   },
   "browserslist": {
     "production": [
