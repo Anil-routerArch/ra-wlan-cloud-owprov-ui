@@ -349,7 +349,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
             leftIcon={<Plus size={16} />}
             onClick={() => setShowAddForm(true)}
           >
-            Create New Policy
+            Assign Scope & Policy
           </Button>
         )}
       </Flex>
