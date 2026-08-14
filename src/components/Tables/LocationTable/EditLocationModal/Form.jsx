@@ -13,6 +13,7 @@ import StringField from 'components/FormFields/StringField';
 import COUNTRY_LIST from 'constants/countryList';
 import { CreateLocationSchema } from 'constants/formSchemas';
 import { LocationShape } from 'constants/propShapes';
+import { getTimezoneOptions } from 'constants/timezoneList';
 import { useGetEntities } from 'hooks/Network/Entity';
 import { useUpdateLocation } from 'hooks/Network/Locations';
 
@@ -43,6 +44,7 @@ const EditLocationForm = ({ editing, isOpen, onClose, refresh, location, formRef
       key={formKey}
       initialValues={{
         ...location,
+        timezone: location.timezone ?? '',
         addressLineOne: location.addressLines[0],
         addressLineTwo: location.addressLines.length >= 2 ? location.addressLines[1] : '',
       }}
@@ -52,6 +54,7 @@ const EditLocationForm = ({ editing, isOpen, onClose, refresh, location, formRef
           name,
           description,
           type,
+          timezone,
           addressLineOne,
           addressLineTwo,
           city,
@@ -66,13 +69,17 @@ const EditLocationForm = ({ editing, isOpen, onClose, refresh, location, formRef
           notes,
         },
         { setSubmitting, resetForm },
-      ) =>
-        updateLocation.mutateAsync(
+      ) => {
+        const cleanAddressLines = [addressLineOne, addressLineTwo].filter(
+          (line) => line && line.trim() !== '',
+        );
+        return updateLocation.mutateAsync(
           {
             name,
             description,
             type,
-            addressLines: [addressLineOne, addressLineTwo],
+            timezone,
+            addressLines: cleanAddressLines,
             city,
             state,
             postal,
@@ -119,8 +126,8 @@ const EditLocationForm = ({ editing, isOpen, onClose, refresh, location, formRef
               setSubmitting(false);
             },
           },
-        )
-      }
+        );
+      }}
     >
       {({ setFieldValue }) => (
         <Tabs variant="enclosed">
@@ -181,6 +188,13 @@ const EditLocationForm = ({ editing, isOpen, onClose, refresh, location, formRef
                   isDisabled={!editing}
                 />
                 <SimpleGrid minChildWidth="300px" spacing="20px" mb={8}>
+                  <SelectField
+                    name="timezone"
+                    label={t('locations.timezone')}
+                    options={[{ label: t('common.none'), value: '' }, ...getTimezoneOptions(location?.timezone)]}
+                    isRequired
+                    isDisabled={!editing}
+                  />
                   <StringField
                     name="addressLineOne"
                     label={t('locations.address_line_one')}
