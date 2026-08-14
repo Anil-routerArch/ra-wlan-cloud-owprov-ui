@@ -6,6 +6,7 @@ import { AtLeast } from 'models/General';
 import { Note } from 'models/Note';
 import { axiosSec } from 'utils/axiosInstances';
 
+// Note: 'system' role was intentionally sunsetted per updated RBAC specifications.
 export type UserRole =
   | 'root'
   | 'admin'

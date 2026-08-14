@@ -102,6 +102,7 @@ const CreateUserForm = ({ isOpen, onClose, formRef }: Props) => {
     return 'csr';
   };
 
+  // Note: 'system' role was intentionally omitted per updated RBAC specifications.
   const availableRoleOptions = [
     { value: 'accounting', label: 'Accounting' },
     { value: 'admin', label: 'Admin' },
