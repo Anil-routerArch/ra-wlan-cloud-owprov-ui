@@ -287,20 +287,6 @@ export const ManagementRolesTable = ({ userId }: Props) => {
     return found ? found.name : id;
   };
 
-  // AI-NOTE: Intentional scope representation — single and multi-venue roles populate venueIds array.
-  const renderRoleVenue = (role: ManagementRole) => {
-    if (role.venueIds && role.venueIds.length > 0) {
-      if (role.venueIds.length === 1) {
-        const found = venues?.find(v => v.id === role.venueIds![0]);
-        return found ? found.name : role.venueIds[0];
-      }
-      return `${role.venueIds.length} Venues`;
-    }
-    if (!role.venue) return 'Entity-wide';
-    const found = venues?.find(v => v.id === role.venue);
-    return found ? found.name : role.venue;
-  };
-
   const getVenueName = (id: string) => {
     if (!id) return 'Entity-wide';
     const found = venues?.find(v => v.id === id);
@@ -387,7 +373,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
             {userRoles.map((role) => (
               <Tr key={role.id}>
                 <Td>{getEntityName(role.entity)}</Td>
-                <Td>{renderRoleVenue(role)}</Td>
+                <Td>{getVenueName(role.venue)}</Td>
                 <Td>
                   {roleToEdit?.id === role.id ? (
                     <Select
