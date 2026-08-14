@@ -53,9 +53,10 @@ import {
 import { getApiErrorMessage } from 'utils/apiErrorMessage';
 type Props = {
   userId: string;
+  isReadOnly?: boolean;
 };
 
-export const ManagementRolesTable = ({ userId }: Props) => {
+export const ManagementRolesTable = ({ userId, isReadOnly = false }: Props) => {
   const { t } = useTranslation();
   const toast = useToast();
   const { user } = useAuth();
@@ -354,7 +355,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
     <Box p={4} borderWidth="1px" borderRadius="lg" borderColor={borderColor} bg={panelBg} w="100%">
       <Flex justifyContent="space-between" alignItems="center" mb={4}>
         <Heading size="sm">Scoped Management Policy Assignments</Heading>
-        {!showAddForm && (
+        {!isReadOnly && !showAddForm && (
           <Button
             colorScheme="blue"
             size="xs"
@@ -378,7 +379,7 @@ export const ManagementRolesTable = ({ userId }: Props) => {
               <Th>Entity</Th>
               <Th>Venue</Th>
               <Th>Assigned Policy</Th>
-              <Th w="190px" />
+              {!isReadOnly && <Th w="190px" />}
             </Tr>
           </Thead>
           <Tbody>
@@ -404,47 +405,49 @@ export const ManagementRolesTable = ({ userId }: Props) => {
                     getPolicyName(role.managementPolicy)
                   )}
                 </Td>
-                <Td>
-                  <Flex gap={2} justify="flex-end">
-                    {roleToEdit?.id === role.id ? (
-                      <>
-                        <Button
+                {!isReadOnly && (
+                  <Td>
+                    <Flex gap={2} justify="flex-end">
+                      {roleToEdit?.id === role.id ? (
+                        <>
+                          <Button
+                            colorScheme="blue"
+                            size="sm"
+                            onClick={handleEdit}
+                            isLoading={updateRoleMutation.isLoading}
+                          >
+                            Save
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={cancelEdit}>
+                            Cancel
+                          </Button>
+                        </>
+                      ) : (
+                        <IconButton
+                          aria-label="Edit policy"
                           colorScheme="blue"
+                          variant="ghost"
                           size="sm"
-                          onClick={handleEdit}
-                          isLoading={updateRoleMutation.isLoading}
-                        >
-                          Save
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={cancelEdit}>
-                          Cancel
-                        </Button>
-                      </>
-                    ) : (
+                          icon={<PencilSimple size={18} />}
+                          onClick={() => openEdit(role)}
+                        />
+                      )}
                       <IconButton
-                        aria-label="Edit policy"
-                        colorScheme="blue"
-                        variant="ghost"
+                        aria-label="Remove policy"
+                        colorScheme="red"
                         size="sm"
-                        icon={<PencilSimple size={18} />}
-                        onClick={() => openEdit(role)}
+                        icon={<Trash size={18} />}
+                        onClick={() => confirmDelete({
+                          id: role.id,
+                          entity: getEntityName(role.entity),
+                          venue: getVenueName(role.venue),
+                          policy: getPolicyName(role.managementPolicy),
+                        })}
+                        isLoading={deleteRoleMutation.isLoading}
                       />
-                    )}
-                    <IconButton
-                      aria-label="Remove policy"
-                      colorScheme="red"
-                      size="sm"
-                      icon={<Trash size={18} />}
-                      onClick={() => confirmDelete({
-                        id: role.id,
-                        entity: getEntityName(role.entity),
-                        venue: getVenueName(role.venue),
-                        policy: getPolicyName(role.managementPolicy),
-                      })}
-                      isLoading={deleteRoleMutation.isLoading}
-                    />
-                  </Flex>
-                </Td>
+                    </Flex>
+                  </Td>
+                )}
               </Tr>
             ))}
           </Tbody>
