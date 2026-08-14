@@ -9,7 +9,7 @@ import { describe, it, expect } from 'vitest';
 export interface UserSession {
   id: string;
   name: string;
-  userRole: 'root' | 'admin' | 'partner' | 'csr' | 'system';
+  userRole: 'root' | 'admin' | 'partner' | 'csr';
   createdBy?: string;
 }
 
@@ -38,7 +38,7 @@ export interface ManagementPolicyPayload {
 
 // UI RBAC Logic Helpers
 export const evaluateUIPolicyControls = (userRole: string) => {
-  const isRoot = userRole === 'root' || userRole === 'system';
+  const isRoot = userRole === 'root';
   return {
     showCreatePolicyButton: isRoot,
     showActionsColumn: isRoot,
@@ -77,7 +77,7 @@ export const authorizeDirectAPICall = (
     }
   }
   if (endpoint.startsWith('/api/v1/managementRole') && ['POST', 'PUT', 'DELETE'].includes(method)) {
-    if (!['root', 'admin', 'system'].includes(userRole)) {
+    if (!['root', 'admin'].includes(userRole)) {
       return { allowed: false, httpStatus: 403, errorMessage: 'ACCESS_DENIED' };
     }
   }
@@ -138,11 +138,10 @@ describe('Hierarchical RBAC UI Test Suite (v2.1 Baseline)', () => {
   });
 
   it('TC-UI-07: Nested IAM Sidebar route accessibility', () => {
-    const isRootOrSystem = (role: string) => role === 'root' || role === 'system';
-    expect(isRootOrSystem('root')).toBe(true);
-    expect(isRootOrSystem('system')).toBe(true);
-    expect(isRootOrSystem('partner')).toBe(false);
-    expect(isRootOrSystem('csr')).toBe(false);
+    const isRoot = (role: string) => role === 'root';
+    expect(isRoot('root')).toBe(true);
+    expect(isRoot('partner')).toBe(false);
+    expect(isRoot('csr')).toBe(false);
   });
 
   it('TC-UI-08: Form error message formatting for invalid entity nesting', () => {

@@ -12,7 +12,6 @@ export type UserRole =
   | 'subscriber'
   | 'partner'
   | 'csr'
-  | 'system'
   | 'installer'
   | 'noc'
   | 'accounting';
