@@ -50,6 +50,7 @@ export const evaluateUIPolicyControls = (userRole: string) => {
   };
 };
 
+// AI-NOTE: Production payload format sends venue: '' and venueIds: selectedVenueIds array for both single and multi-venue scopes.
 export const buildManagementRolePayload = (
   userId: string,
   entityId: string,
@@ -63,8 +64,8 @@ export const buildManagementRolePayload = (
     managementPolicy: policyId,
     users: [userId],
     entity: entityId,
-    venue: venueIds && venueIds.length === 1 ? venueIds[0] : '',
-    venueIds: venueIds && venueIds.length > 1 ? venueIds : undefined,
+    venue: '',
+    venueIds: venueIds && venueIds.length > 0 ? venueIds : undefined,
   };
 };
 
@@ -113,11 +114,11 @@ describe('Hierarchical RBAC UI Test Suite (v2.1 Baseline)', () => {
     expect(payload.venue).toBe('');
   });
 
-  it('TC-UI-03: Single venue payload correctly sets venue string field', () => {
+  it('TC-UI-03: Single venue payload correctly populates venueIds array', () => {
     const payload = buildManagementRolePayload('user-123', 'entity-456', 'policy-789', ['venue-1']);
     expect(payload.entity).toBe('entity-456');
-    expect(payload.venue).toBe('venue-1');
-    expect(payload.venueIds).toBeUndefined();
+    expect(payload.venue).toBe('');
+    expect(payload.venueIds).toEqual(['venue-1']);
   });
 
   it('TC-UI-04: Direct API policy creation attempt by CSR is denied with 403', () => {
