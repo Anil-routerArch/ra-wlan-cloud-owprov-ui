@@ -10,7 +10,6 @@ const ALL_ROLES: UserRole[] = [
   'subscriber',
   'partner',
   'csr',
-  'system',
   'installer',
   'noc',
   'accounting',
