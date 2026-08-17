@@ -80,9 +80,9 @@ export const ManagementRolesTable = ({ userId, isReadOnly = false }: Props) => {
   const [editPolicyId, setEditPolicyId] = useState('');
 
   const { data: roles, isLoading: rolesLoading, error: rolesError } = useGetManagementRoles(userId);
-  const { data: entities, isLoading: entitiesLoading } = useGetEntities();
-  const { data: venues, isLoading: venuesLoading } = useGetVenues();
-  const { data: policies, isLoading: policiesLoading } = useGetManagementPolicies();
+  const { data: entities, isLoading: entitiesLoading, error: entitiesError } = useGetEntities();
+  const { data: venues, isLoading: venuesLoading, error: venuesError } = useGetVenues();
+  const { data: policies, isLoading: policiesLoading, error: policiesError } = useGetManagementPolicies();
 
   const createRoleMutation = useCreateManagementRole();
   const updateRoleMutation = useUpdateManagementRole();
@@ -342,11 +342,12 @@ export const ManagementRolesTable = ({ userId, isReadOnly = false }: Props) => {
     );
   }
 
-  if (rolesError) {
+  const fetchError = rolesError || entitiesError || venuesError || policiesError;
+  if (fetchError) {
     return (
       <Alert status="error" my={4}>
         <AlertIcon />
-        Failed to load management roles.
+        Failed to load management roles or policy assignment data.
       </Alert>
     );
   }
