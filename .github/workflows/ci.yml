@@ -36,40 +36,19 @@ jobs:
         npm test -- --passWithNoTests
 
   docker:
+    name: Build Docker image
     runs-on: ubuntu-latest
-    env:
-      DOCKER_REGISTRY_URL: tip-tip-wlan-cloud-ucentral.jfrog.io
-      DOCKER_REGISTRY_USERNAME: ucentral
     steps:
-    - name: Checkout actions repo
+    - name: Checkout repository
       uses: actions/checkout@v3
-      continue-on-error: true
-      with:
-        repository: Telecominfraproject/.github
-        path: github
 
-    - name: Build and push Docker image
-      uses: ./github/composite-actions/docker-image-build
-      continue-on-error: true
-      with:
-        image_name: owprov-ui
-        registry: tip-tip-wlan-cloud-ucentral.jfrog.io
-        registry_user: ucentral
-        registry_password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
-
-    - name: Notify on failure via Slack
-      if: failure() && github.ref == 'refs/heads/main'
-      uses: rtCamp/action-slack-notify@v2
-      env:
-        SLACK_USERNAME: GitHub Actions failure notifier
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-        SLACK_COLOR: "${{ job.status }}"
-        SLACK_ICON: https://raw.githubusercontent.com/quintessence/slack-icons/master/images/github-logo-slack-icon.png
-        SLACK_TITLE: Docker build failed for OWProv-UI service
+    - name: Build Docker image
+      run: docker build -t owprov-ui:latest .
 
   trigger-deploy-to-dev:
+    name: Trigger deployment
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && secrets.WLAN_TESTING_PAT != ''
+    if: false
     needs:
       - docker
     steps:
