@@ -1,7 +1,8 @@
 /**
- * Automated Hierarchical RBAC UI Test Suite (v2.1 Baseline)
- * Repository: ra-wlan-cloud-owprov-ui
- * Author: Antigravity AI Pair Programmer
+ * Baseline Contract & Mock Payload Test Suite (v2.1 Baseline)
+ * 
+ * NOTE: This test suite provides mock unit assertions and contract validation 
+ * for RBAC v2.1 payload structures and policy boundary evaluations.
  */
 
 import { describe, it, expect } from 'vitest';
