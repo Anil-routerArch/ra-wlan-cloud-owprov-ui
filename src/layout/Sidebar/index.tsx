@@ -66,7 +66,7 @@ export const Sidebar = ({ routes, isOpen, toggle, logo, version, topNav, childre
             <VStack spacing={2} alignItems="start" w="100%" px={4}>
               {topNav ? topNav(isRouteActive, toggle) : null}
               {routes
-                .filter(({ hidden, authorized }) => !hidden && authorized.includes(user?.userRole ?? ''))
+                .filter(({ hidden }) => !hidden)
                 .map((route) =>
                   route.children ? (
                     <NestedNavButton key={route.id} isActive={isRouteActive} route={route} toggleSidebar={toggle} />
@@ -93,7 +93,7 @@ export const Sidebar = ({ routes, isOpen, toggle, logo, version, topNav, childre
         </Box>
       </>
     ),
-    [children, location, routes, t, toggle, topNav, user?.userRole, version],
+    [children, location, routes, t, toggle, topNav, version],
   );
 
   return (

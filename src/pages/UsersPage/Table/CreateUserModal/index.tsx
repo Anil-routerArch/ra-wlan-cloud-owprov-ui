@@ -36,7 +36,7 @@ const CreateUserModal = ({ onCreateSuccess }: Props) => {
 
   return (
     <>
-      {user?.userRole === 'CSR' ? null : <CreateButton onClick={onOpen} ml={2} />}
+      <CreateButton onClick={onOpen} ml={2} />
       <Modal
         isOpen={isOpen}
         onClose={closeModal}

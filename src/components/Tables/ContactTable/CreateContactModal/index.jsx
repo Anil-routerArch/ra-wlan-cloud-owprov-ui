@@ -47,7 +47,7 @@ const CreateContactModal = ({ refresh, entityId, isVenue, onCreate }) => {
 
   return (
     <>
-      {user?.userRole === 'CSR' ? null : <CreateButton onClick={onOpen} ml={2} />}
+      <CreateButton onClick={onOpen} ml={2} />
       <Modal onClose={closeModal} isOpen={isOpen} size="xl" initialFocusRef={initialRef}>
         <ModalOverlay />
         <ModalContent maxWidth={{ sm: '600px', md: '700px', lg: '800px', xl: '50%' }}>
