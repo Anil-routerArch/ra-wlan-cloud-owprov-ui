@@ -41,8 +41,14 @@ const EditUserModal = ({ isOpen, onClose, userId, defaultTab }: Props) => {
   };
 
   useEffect(() => {
-    if (isOpen) setEditing.off();
-  }, [isOpen]);
+    if (isOpen) {
+      if (defaultTab !== undefined && defaultTab !== 0) {
+        setEditing.on();
+      } else {
+        setEditing.off();
+      }
+    }
+  }, [isOpen, defaultTab]);
 
   return (
     <>

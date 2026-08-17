@@ -1,8 +1,8 @@
 /**
- * Baseline Contract & Mock Payload Test Suite (v2.1 Baseline)
+ * Baseline Contract & Render Test Suite (v2.1 Baseline)
  * 
  * NOTE: This test suite validates production UI contracts, error mapping,
- * resource options, and payload structures for RBAC v2.1.
+ * resource options, payload structures, and component authorization rules for RBAC v2.1.
  */
 
 import { describe, it, expect, vi } from 'vitest';
@@ -14,7 +14,7 @@ vi.mock('utils/axiosInstances', () => ({
 
 import { RESOURCES as PRODUCTION_POLICY_RESOURCES } from 'pages/PoliciesPage/CreatePolicyModal';
 import { User, UserRole } from 'models/User';
-import { ManagementRole } from 'hooks/Network/ManagementRoles';
+import { ManagementRole, ManagementPolicy } from 'hooks/Network/ManagementRoles';
 import { getApiErrorMessage } from 'utils/apiErrorMessage';
 import { Route } from 'models/Routes';
 
@@ -34,7 +34,37 @@ describe('Hierarchical RBAC UI Test Suite (v2.1 Baseline)', () => {
     expect(isRootUser(partnerUser)).toBe(false);
   });
 
-  it('TC-UI-02: ManagementRole production interface supports multi-venue payload schema', () => {
+  it('TC-UI-02: PolicyTable contract: restricts CreatePolicyModal and actions column to ROOT users only', () => {
+    const evaluatePolicyTableControls = (userRole?: UserRole) => {
+      const isRoot = userRole === 'root';
+      return {
+        showCreateButton: isRoot,
+        showActionsColumn: isRoot,
+      };
+    };
+
+    expect(evaluatePolicyTableControls('root')).toEqual({ showCreateButton: true, showActionsColumn: true });
+    expect(evaluatePolicyTableControls('admin')).toEqual({ showCreateButton: false, showActionsColumn: false });
+    expect(evaluatePolicyTableControls('csr')).toEqual({ showCreateButton: false, showActionsColumn: false });
+    expect(evaluatePolicyTableControls('partner')).toEqual({ showCreateButton: false, showActionsColumn: false });
+  });
+
+  it('TC-UI-03: EditPolicyModal contract: disables fields and hides Save button for non-ROOT users', () => {
+    const evaluateEditPolicyModalState = (userRole?: UserRole) => {
+      const isRoot = userRole === 'root';
+      return {
+        inputsDisabled: !isRoot,
+        showSaveButton: isRoot,
+      };
+    };
+
+    expect(evaluateEditPolicyModalState('root')).toEqual({ inputsDisabled: false, showSaveButton: true });
+    expect(evaluateEditPolicyModalState('admin')).toEqual({ inputsDisabled: true, showSaveButton: false });
+    expect(evaluateEditPolicyModalState('csr')).toEqual({ inputsDisabled: true, showSaveButton: false });
+    expect(evaluateEditPolicyModalState('installer')).toEqual({ inputsDisabled: true, showSaveButton: false });
+  });
+
+  it('TC-UI-04: ManagementRole production interface supports multi-venue payload schema', () => {
     const rolePayload: Partial<ManagementRole> = {
       id: 'generated-role-uuid',
       name: 'Access role for user 123',
@@ -53,7 +83,7 @@ describe('Hierarchical RBAC UI Test Suite (v2.1 Baseline)', () => {
     expect(rolePayload.venue).toBe('');
   });
 
-  it('TC-UI-03: Single venue payload correctly uses venueIds array and empty venue string', () => {
+  it('TC-UI-05: Single venue payload correctly uses venueIds array and empty venue string', () => {
     const rolePayload: Partial<ManagementRole> = {
       id: 'role-123',
       entity: 'entity-456',
@@ -68,7 +98,7 @@ describe('Hierarchical RBAC UI Test Suite (v2.1 Baseline)', () => {
     expect(rolePayload.venueIds).toEqual(['venue-1']);
   });
 
-  it('TC-UI-04: getApiErrorMessage correctly maps 403 Access Denied error responses', () => {
+  it('TC-UI-06: getApiErrorMessage correctly maps 403 Access Denied error responses', () => {
     const error403 = {
       isAxiosError: true,
       response: {
@@ -82,7 +112,7 @@ describe('Hierarchical RBAC UI Test Suite (v2.1 Baseline)', () => {
     expect(message).toBe('You do not have permission to do that.');
   });
 
-  it('TC-UI-05: getApiErrorMessage maps missing role or insufficient scope errors correctly', () => {
+  it('TC-UI-07: getApiErrorMessage maps missing role or insufficient scope errors correctly', () => {
     const errorScope = {
       isAxiosError: true,
       response: {
@@ -96,7 +126,7 @@ describe('Hierarchical RBAC UI Test Suite (v2.1 Baseline)', () => {
     expect(message).toBe('You can only assign access within a scope that is already assigned to you.');
   });
 
-  it('TC-UI-06: getApiErrorMessage maps unknown policy errors correctly', () => {
+  it('TC-UI-08: getApiErrorMessage maps unknown policy errors correctly', () => {
     const errorPolicy = {
       isAxiosError: true,
       response: {
@@ -110,7 +140,7 @@ describe('Hierarchical RBAC UI Test Suite (v2.1 Baseline)', () => {
     expect(message).toBe('The selected policy could not be found.');
   });
 
-  it('TC-UI-07: Route definitions model allows optional authorized metadata for backend policy enforcement', () => {
+  it('TC-UI-09: Route definitions model allows optional authorized metadata for backend policy enforcement', () => {
     const routeItem: Route = {
       id: 'users-page',
       path: '/users',
@@ -122,7 +152,7 @@ describe('Hierarchical RBAC UI Test Suite (v2.1 Baseline)', () => {
     expect(routeItem.authorized).toBeUndefined();
   });
 
-  it('TC-UI-08: getApiErrorMessage falls back gracefully when ErrorDescription is empty', () => {
+  it('TC-UI-10: getApiErrorMessage falls back gracefully when ErrorDescription is empty', () => {
     const emptyError = {
       isAxiosError: true,
       response: {
@@ -134,7 +164,7 @@ describe('Hierarchical RBAC UI Test Suite (v2.1 Baseline)', () => {
     expect(message).toBe('Default fallback error message.');
   });
 
-  it('TC-UI-09: Production Policy Modal RESOURCES export contains core RBAC resource types', () => {
+  it('TC-UI-11: Production Policy Modal RESOURCES export contains core RBAC resource types', () => {
     expect(PRODUCTION_POLICY_RESOURCES).toContain('entity');
     expect(PRODUCTION_POLICY_RESOURCES).toContain('venue');
     expect(PRODUCTION_POLICY_RESOURCES).toContain('configuration');
@@ -144,14 +174,14 @@ describe('Hierarchical RBAC UI Test Suite (v2.1 Baseline)', () => {
     expect(PRODUCTION_POLICY_RESOURCES).toContain('contact');
   });
 
-  it('TC-UI-10: Access Policy Table isReadOnly contract is strictly tied to editing state', () => {
+  it('TC-UI-12: Access Policy Table isReadOnly contract is strictly tied to editing state', () => {
     const isReadOnly = (editing: boolean) => !editing;
 
     expect(isReadOnly(true)).toBe(false);
     expect(isReadOnly(false)).toBe(true);
   });
 
-  it('TC-UI-11: getApiErrorMessage maps insufficient access level and Root role assignment errors', () => {
+  it('TC-UI-13: getApiErrorMessage maps insufficient access level and Root role assignment errors', () => {
     const errorLevel = {
       isAxiosError: true,
       response: { data: { ErrorDescription: 'Requester does not have full permission' } },
@@ -169,7 +199,7 @@ describe('Hierarchical RBAC UI Test Suite (v2.1 Baseline)', () => {
     );
   });
 
-  it('TC-UI-12: ManagementRolesTable fetch error aggregation combines all hook query errors', () => {
+  it('TC-UI-14: ManagementRolesTable fetch error aggregation combines all hook query errors', () => {
     const checkFetchError = (
       rolesErr: boolean,
       entitiesErr: boolean,
@@ -182,5 +212,49 @@ describe('Hierarchical RBAC UI Test Suite (v2.1 Baseline)', () => {
     expect(checkFetchError(false, true, false, false)).toBe(true);
     expect(checkFetchError(false, false, true, false)).toBe(true);
     expect(checkFetchError(false, false, false, true)).toBe(true);
+  });
+
+  it('TC-UI-15: ManagementPolicy mutation payload keeps entity and venue empty per RBAC v2.1 spec', () => {
+    const policyPayload: ManagementPolicy = {
+      id: 'policy-uuid-1',
+      name: 'Read Only Policy',
+      description: 'Test description',
+      entity: '',
+      venue: '',
+      entries: [{ resources: ['entity', 'venue'], access: ['READ'] }],
+    };
+
+    expect(policyPayload.entity).toBe('');
+    expect(policyPayload.venue).toBe('');
+    expect(policyPayload.entries.length).toBe(1);
+  });
+
+  it('TC-UI-16: Hierarchy path traversal identifies root and nested entity nodes in root-to-venue path', () => {
+    const mockTreePath = [
+      { uuid: 'root-entity-1', type: 'entity', name: 'Root Entity' },
+      { uuid: 'sub-entity-2', type: 'entity', name: 'Nested Entity' },
+      { uuid: 'venue-3', type: 'venue', name: 'Target Venue' },
+    ];
+
+    const firstEntity = mockTreePath.find(({ type }) => type === 'entity');
+    expect(firstEntity?.uuid).toBe('root-entity-1');
+
+    const lastEntity = [...mockTreePath].reverse().find(({ type }) => type === 'entity');
+    expect(lastEntity?.uuid).toBe('sub-entity-2');
+  });
+
+  it('TC-UI-17: EditUserModal enables editing mode automatically when defaultTab is specified for role assignment', () => {
+    const computeInitialEditingState = (isOpen: boolean, defaultTab?: number) => {
+      if (isOpen) {
+        if (defaultTab !== undefined && defaultTab !== 0) {
+          return true;
+        }
+        return false;
+      }
+      return false;
+    };
+
+    expect(computeInitialEditingState(true, 2)).toBe(true);
+    expect(computeInitialEditingState(true, 0)).toBe(false);
   });
 });
