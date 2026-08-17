@@ -1,4 +1,4 @@
-name: Build Docker image
+name: CI
 
 on:
   push:
@@ -7,12 +7,14 @@ on:
     branches:
       - main
       - 'release/*'
+      - 'anil-feature-ui'
     tags:
       - 'v*'
   pull_request:
     branches:
       - main
       - 'release/*'
+      - 'anil-feature-ui'
 
 defaults:
   run:
@@ -20,50 +22,49 @@ defaults:
 
 jobs:
   test:
+    name: Run Vitest UI Tests
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
 
     - name: Run Vitest tests
-      run: |
-        npm ci
-        npm test -- --passWithNoTests
+      run: npm test -- --passWithNoTests
 
-  docker:
-    name: Build Docker image
+  build-bundle:
+    name: Production UI Build Validation
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build Web Production Assets
+      run: npm run build
+
+  docker-build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
     - name: Build Docker image
       run: docker build -t owprov-ui:latest .
-
-  trigger-deploy-to-dev:
-    name: Trigger deployment
-    runs-on: ubuntu-latest
-    if: false
-    needs:
-      - docker
-    steps:
-    - name: Checkout actions repo
-      uses: actions/checkout@v3
-      with:
-        repository: Telecominfraproject/.github
-        path: github
-
-    - name: Trigger deployment of the latest version to dev instance and wait for result
-      uses: ./github/composite-actions/trigger-workflow-and-wait
-      with:
-        owner: Telecominfraproject
-        repo: wlan-testing
-        workflow: ucentralgw-dev-deployment.yaml
-        token: ${{ secrets.WLAN_TESTING_PAT }}
-        ref: master
-        inputs: '{"force_latest": "true"}'
