@@ -145,4 +145,37 @@ describe('Hierarchical RBAC UI Test Suite (v2.1 Baseline)', () => {
     expect(isReadOnly(true)).toBe(false);
     expect(isReadOnly(false)).toBe(true);
   });
+
+  it('TC-UI-11: getApiErrorMessage maps insufficient access level and Root role assignment errors', () => {
+    const errorLevel = {
+      isAxiosError: true,
+      response: { data: { ErrorDescription: 'Requester does not have full permission' } },
+    };
+    expect(getApiErrorMessage(errorLevel, 'fallback')).toBe(
+      'You cannot assign full access because your own access in this scope is lower.'
+    );
+
+    const errorRootRole = {
+      isAxiosError: true,
+      response: { data: { ErrorDescription: 'Only root may assign the root user role' } },
+    };
+    expect(getApiErrorMessage(errorRootRole, 'fallback')).toBe(
+      'Only a root user can assign the Root role.'
+    );
+  });
+
+  it('TC-UI-12: ManagementRolesTable fetch error aggregation combines all hook query errors', () => {
+    const checkFetchError = (
+      rolesErr: boolean,
+      entitiesErr: boolean,
+      venuesErr: boolean,
+      policiesErr: boolean
+    ) => rolesErr || entitiesErr || venuesErr || policiesErr;
+
+    expect(checkFetchError(false, false, false, false)).toBe(false);
+    expect(checkFetchError(true, false, false, false)).toBe(true);
+    expect(checkFetchError(false, true, false, false)).toBe(true);
+    expect(checkFetchError(false, false, true, false)).toBe(true);
+    expect(checkFetchError(false, false, false, true)).toBe(true);
+  });
 });
