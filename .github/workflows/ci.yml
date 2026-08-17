@@ -33,3 +33,13 @@ jobs:
       run: |
         npm ci
         npm test -- --passWithNoTests
+
+  docker:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Build Docker Image
+      run: docker build -t owprov-ui:latest .
