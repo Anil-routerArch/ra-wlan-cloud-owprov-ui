@@ -5,7 +5,13 @@
  * for RBAC v2.1 payload structures and policy boundary evaluations.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+vi.mock('utils/axiosInstances', () => ({
+  secUrl: 'http://localhost/api/v1',
+  axiosSec: {},
+}));
+
 import { RESOURCES as PRODUCTION_POLICY_RESOURCES } from 'pages/PoliciesPage/CreatePolicyModal';
 import { UserRole } from 'models/User';
 
