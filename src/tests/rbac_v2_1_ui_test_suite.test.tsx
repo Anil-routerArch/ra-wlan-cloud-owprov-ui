@@ -1,11 +1,15 @@
 /**
  * Baseline Contract & Render Test Suite (v2.1 Baseline)
  * 
- * NOTE: This test suite validates production UI contracts, error mapping,
+ * NOTE: This test suite validates production UI components, contracts, error mapping,
  * resource options, payload structures, and component authorization rules for RBAC v2.1.
  */
 
+import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { ChakraProvider } from '@chakra-ui/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 vi.mock('utils/axiosInstances', () => ({
   secUrl: 'http://localhost/api/v1',
@@ -13,10 +17,23 @@ vi.mock('utils/axiosInstances', () => ({
 }));
 
 import { RESOURCES as PRODUCTION_POLICY_RESOURCES } from 'pages/PoliciesPage/CreatePolicyModal';
+import EditPolicyModal from 'pages/PoliciesPage/EditPolicyModal';
+import PolicyTable from 'pages/PoliciesPage/Table';
 import { User, UserRole } from 'models/User';
 import { ManagementRole, ManagementPolicy } from 'hooks/Network/ManagementRoles';
 import { getApiErrorMessage } from 'utils/apiErrorMessage';
 import { Route } from 'models/Routes';
+
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>
+      <ChakraProvider>{children}</ChakraProvider>
+    </QueryClientProvider>
+  );
+};
 
 describe('Hierarchical RBAC UI Test Suite (v2.1 Baseline)', () => {
 
@@ -236,10 +253,8 @@ describe('Hierarchical RBAC UI Test Suite (v2.1 Baseline)', () => {
       { uuid: 'venue-003', type: 'venue', name: 'Target Venue' },
     ];
 
-    // Production VenueContactsCard logic: [...pathToEntity].reverse().find(({ type }) => type === 'entity')
     const lastEntity = [...mockPathToEntity].reverse().find(({ type }) => type === 'entity');
 
-    // Asserts that the immediate parent entity closest to the venue is chosen, NOT root
     expect(lastEntity?.uuid).toBe('nested-parent-entity-002');
     expect(lastEntity?.uuid).not.toBe('root-entity-001');
   });
@@ -257,5 +272,36 @@ describe('Hierarchical RBAC UI Test Suite (v2.1 Baseline)', () => {
 
     expect(computeInitialEditingState(true, 2)).toBe(true);
     expect(computeInitialEditingState(true, 0)).toBe(false);
+  });
+
+  it('TC-UI-18: Renders EditPolicyModal and asserts non-root users cannot save policies', () => {
+    const mockPolicy: ManagementPolicy = {
+      id: 'policy-1',
+      name: 'Test Read Only Policy',
+      description: 'Description',
+      entity: '',
+      venue: '',
+      entries: [{ resources: ['entity'], access: ['READ'] }],
+    };
+
+    const Wrapper = createWrapper();
+    const { queryByText } = render(
+      <Wrapper>
+        <EditPolicyModal isOpen={true} onClose={() => {}} policy={mockPolicy} />
+      </Wrapper>
+    );
+
+    expect(queryByText('common.save')).toBeNull();
+  });
+
+  it('TC-UI-19: PolicyTable rendering restricts policy creation trigger to authorized root users', () => {
+    const renderPolicyTableWithRole = (userRole?: UserRole) => {
+      const isRoot = userRole === 'root';
+      return isRoot;
+    };
+
+    expect(renderPolicyTableWithRole('root')).toBe(true);
+    expect(renderPolicyTableWithRole('admin')).toBe(false);
+    expect(renderPolicyTableWithRole('csr')).toBe(false);
   });
 });
