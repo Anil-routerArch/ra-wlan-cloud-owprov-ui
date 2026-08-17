@@ -167,7 +167,7 @@ const UpdateUserForm = ({ editing, isOpen, onClose, selectedUser, formRef, defau
               <NotesField isDisabled={!editing} />
             </TabPanel>
             <TabPanel>
-              <ManagementRolesTable userId={selectedUser.id} isReadOnly={!editing} />
+              <ManagementRolesTable userId={selectedUser.id} isReadOnly={!editing || user?.userRole !== 'root'} />
             </TabPanel>
           </TabPanels>
         </Tabs>
