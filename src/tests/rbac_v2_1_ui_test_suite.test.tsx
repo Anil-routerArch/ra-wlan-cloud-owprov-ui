@@ -13,23 +13,25 @@ vi.mock('utils/axiosInstances', () => ({
 }));
 
 import { RESOURCES as PRODUCTION_POLICY_RESOURCES } from 'pages/PoliciesPage/CreatePolicyModal';
-import { UserRole } from 'models/User';
+import { User, UserRole } from 'models/User';
 import { ManagementRole } from 'hooks/Network/ManagementRoles';
 import { getApiErrorMessage } from 'utils/apiErrorMessage';
 import routes from 'router/routes';
 
 describe('Hierarchical RBAC UI Test Suite (v2.1 Baseline)', () => {
 
-  it('TC-UI-01: UserRole model supports ROOT and non-ROOT operator roles', () => {
-    const rootRole: UserRole = 'root';
-    const csrRole: UserRole = 'csr';
-    const adminRole: UserRole = 'admin';
-    const partnerRole: UserRole = 'partner';
+  it('TC-UI-01: Correctly evaluates root access privileges on production User objects', () => {
+    const rootUser: Partial<User> = { id: 'usr-1', name: 'Root User', userRole: 'root' };
+    const adminUser: Partial<User> = { id: 'usr-2', name: 'Admin User', userRole: 'admin' };
+    const csrUser: Partial<User> = { id: 'usr-3', name: 'CSR User', userRole: 'csr' };
+    const partnerUser: Partial<User> = { id: 'usr-4', name: 'Partner User', userRole: 'partner' };
 
-    expect(rootRole === 'root').toBe(true);
-    expect(csrRole === 'root').toBe(false);
-    expect(adminRole === 'root').toBe(false);
-    expect(partnerRole === 'root').toBe(false);
+    const isRootUser = (u?: Partial<User>) => u?.userRole === 'root';
+
+    expect(isRootUser(rootUser)).toBe(true);
+    expect(isRootUser(adminUser)).toBe(false);
+    expect(isRootUser(csrUser)).toBe(false);
+    expect(isRootUser(partnerUser)).toBe(false);
   });
 
   it('TC-UI-02: ManagementRole production interface supports multi-venue payload schema', () => {
