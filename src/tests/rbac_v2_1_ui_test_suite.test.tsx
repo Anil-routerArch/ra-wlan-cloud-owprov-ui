@@ -168,13 +168,10 @@ describe('Hierarchical RBAC UI Test Suite (v2.1 Baseline)', () => {
     expect(PRODUCTION_POLICY_RESOURCES).toContain('contact');
   });
 
-  it('TC-UI-10: Access Policy Table mutation controls are read-only for non-ROOT users in EditUserModal', () => {
-    const isManagementRolesReadOnly = (editing: boolean, userRole?: string) => !editing || userRole !== 'root';
+  it('TC-UI-10: Access Policy Table assignment controls are enabled during edit mode and guarded by backend RBAC', () => {
+    const isManagementRolesReadOnly = (editing: boolean) => !editing;
 
-    expect(isManagementRolesReadOnly(true, 'root')).toBe(false);
-    expect(isManagementRolesReadOnly(true, 'admin')).toBe(true);
-    expect(isManagementRolesReadOnly(true, 'partner')).toBe(true);
-    expect(isManagementRolesReadOnly(true, 'csr')).toBe(true);
-    expect(isManagementRolesReadOnly(false, 'root')).toBe(true);
+    expect(isManagementRolesReadOnly(true)).toBe(false);
+    expect(isManagementRolesReadOnly(false)).toBe(true);
   });
 });

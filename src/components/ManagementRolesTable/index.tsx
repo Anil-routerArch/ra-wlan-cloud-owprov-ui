@@ -454,7 +454,7 @@ export const ManagementRolesTable = ({ userId, isReadOnly = false }: Props) => {
         </Table>
       )}
 
-      {showAddForm && (
+      {!isReadOnly && showAddForm && (
         <>
           <Divider my={4} />
 
