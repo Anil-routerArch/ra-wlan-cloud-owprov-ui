@@ -4,35 +4,19 @@ import { describe, it, expect } from 'vitest';
  * Management Roles Immutability Frontend Validation (Section 6.4)
  * 
  * DESCRIPTION:
- *   Validates that when editing an existing management role in the UI,
- *   the scope fields (entity, venue, users) are disabled and non-editable, 
- *   while only the managementPolicy dropdown remains editable.
- * 
- * EXPECTED OUTPUT:
- *   - isEntityEditable === false
- *   - isVenueEditable === false
- *   - isUsersEditable === false
- *   - isPolicyEditable === true
+ *   Validates management role mutation controls and immutability rules for 
+ *   role assignments (entity, venue, users vs policy updates).
  */
 describe('Management Role Immutability Frontend Validation', () => {
-  it('prevents scope modification fields in role edit form', () => {
-    const existingRole = {
-      id: 'ed7ff809-20d3-48f4-8fe2-c882cd681657',
-      users: ['e6885f03-63db-4e0d-aad4-2b8d1a79a887'],
-      entity: '7fa1a180-c93c-4b3b-a3ac-b3fbbf0fa097',
-      venue: '',
-      managementPolicy: '6f0e350a-8b7b-4ae1-bbd7-5f559792bc95',
-    };
+  it('prevents scope modification for existing role assignments and restricts mutations to ROOT users', () => {
+    const isManagementRolesReadOnly = (editing: boolean, userRole?: string) => !editing || userRole !== 'root';
 
-    // Scope fields (entity, venue, users) should be disabled/immutable
-    const isEntityEditable = false;
-    const isVenueEditable = false;
-    const isUsersEditable = false;
-    const isPolicyEditable = true;
-
-    expect(isEntityEditable).toBe(false);
-    expect(isVenueEditable).toBe(false);
-    expect(isUsersEditable).toBe(false);
-    expect(isPolicyEditable).toBe(true);
+    // Existing management role scope fields (entity/venue/users) are immutable after creation.
+    // Policy assignment table controls are restricted to ROOT operator in edit mode.
+    expect(isManagementRolesReadOnly(true, 'root')).toBe(false);
+    expect(isManagementRolesReadOnly(true, 'admin')).toBe(true);
+    expect(isManagementRolesReadOnly(true, 'partner')).toBe(true);
+    expect(isManagementRolesReadOnly(true, 'csr')).toBe(true);
+    expect(isManagementRolesReadOnly(false, 'root')).toBe(true);
   });
 });

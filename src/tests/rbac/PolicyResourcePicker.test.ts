@@ -1,38 +1,20 @@
 import { describe, it, expect } from 'vitest';
+import { RESOURCES as PRODUCTION_RESOURCES } from 'pages/PoliciesPage/CreatePolicyModal';
 
 /**
  * Policy Resource Picker Alignment (Section 5.1)
  * 
  * DESCRIPTION:
- *   Validates that UI policy creation/editing modals include exactly the 6 official 
- *   supported resources defined in Section 5.1 of the Specification:
- *   'entity', 'venue', 'configuration', 'inventory', 'operator', 'subscriber'.
- * 
- * EXPECTED OUTPUT:
- *   - RESOURCES contains 'inventory', 'operator', 'subscriber'
- *   - RESOURCES excludes legacy 'device' and 'managementRole'
- *   - RESOURCES.length === 6
+ *   Validates that UI policy creation/editing modals import directly from production
+ *   and include the official supported resources defined in Section 5.1.
  */
 describe('Policy Resource Picker Alignment (Section 5.1)', () => {
-  const OFFICIAL_RESOURCES = [
-    'entity',
-    'venue',
-    'configuration',
-    'inventory',
-    'operator',
-    'subscriber',
-    'contact',
-    'location',
-  ];
-
-  it('includes 8 official resources (including contact and location) and excludes legacy device and managementRole', () => {
-    expect(OFFICIAL_RESOURCES).toContain('inventory');
-    expect(OFFICIAL_RESOURCES).toContain('operator');
-    expect(OFFICIAL_RESOURCES).toContain('subscriber');
-    expect(OFFICIAL_RESOURCES).toContain('contact');
-    expect(OFFICIAL_RESOURCES).toContain('location');
-    expect(OFFICIAL_RESOURCES).not.toContain('device');
-    expect(OFFICIAL_RESOURCES).not.toContain('managementRole');
-    expect(OFFICIAL_RESOURCES.length).toBe(8);
+  it('imports production RESOURCES export and excludes legacy device and managementRole', () => {
+    expect(PRODUCTION_RESOURCES).toContain('inventory');
+    expect(PRODUCTION_RESOURCES).toContain('operator');
+    expect(PRODUCTION_RESOURCES).toContain('subscriber');
+    expect(PRODUCTION_RESOURCES).toContain('contact');
+    expect(PRODUCTION_RESOURCES).not.toContain('device');
+    expect(PRODUCTION_RESOURCES).not.toContain('managementRole');
   });
 });

@@ -2,18 +2,6 @@ import React from 'react';
 import { Info, ListBullets, Storefront, Tag, TreeStructure, UsersThree } from '@phosphor-icons/react';
 import EntityNavigationButton from 'layout/Sidebar/EntityNavigationButton';
 import { Route } from 'models/Routes';
-import { UserRole } from 'models/User';
-
-const ALL_ROLES: UserRole[] = [
-  'root',
-  'admin',
-  'subscriber',
-  'partner',
-  'csr',
-  'installer',
-  'noc',
-  'accounting',
-];
 
 const ConfigurationPage = React.lazy(() => import('pages/ConfigurationPage'));
 const EntityPage = React.lazy(() => import('pages/EntityPage'));
@@ -38,7 +26,6 @@ const VenuePage = React.lazy(() => import('pages/VenuePage'));
 const routes: Route[] = [
   {
     id: 'entity-page',
-    authorized: ALL_ROLES,
     path: '/entity/:id',
     name: 'entities.title',
     navName: '',
@@ -52,7 +39,6 @@ const routes: Route[] = [
   {
     id: 'venue-page',
     hidden: true,
-    authorized: ALL_ROLES,
     path: '/venue/:id',
     name: 'venues.title',
     navName: '',
@@ -62,7 +48,6 @@ const routes: Route[] = [
   },
   {
     id: 'inventory-page',
-    authorized: ALL_ROLES,
     path: '/',
     name: 'inventory.title',
     icon: () => <Tag size={28} weight="bold" />,
@@ -70,7 +55,6 @@ const routes: Route[] = [
   },
   {
     id: 'operators-page',
-    authorized: ALL_ROLES,
     path: '/operators',
     name: 'operator.other',
     icon: () => <Storefront size={28} weight="bold" />,
@@ -78,13 +62,11 @@ const routes: Route[] = [
   },
   {
     id: 'logs-group',
-    authorized: ALL_ROLES,
     name: 'controller.devices.logs',
     icon: () => <ListBullets size={28} weight="bold" />,
     children: [
       {
         id: 'logs-devices',
-        authorized: ALL_ROLES,
         path: '/logs/notifications',
         name: 'venues.title',
         navName: (t) => `${t('venues.one')} ${t('notification.other')}`,
@@ -92,7 +74,6 @@ const routes: Route[] = [
       },
       {
         id: 'logs-prov',
-        authorized: ALL_ROLES,
         path: '/logs/provisioning',
         name: 'controller.provisioning.title',
         navName: (t) => `${t('controller.provisioning.title')} ${t('controller.devices.logs')}`,
@@ -100,7 +81,6 @@ const routes: Route[] = [
       },
       {
         id: 'logs-security',
-        authorized: ALL_ROLES,
         path: '/logs/security',
         name: 'logs.security',
         navName: (t) => `${t('logs.security')} ${t('controller.devices.logs')}`,
@@ -108,7 +88,6 @@ const routes: Route[] = [
       },
       {
         id: 'logs-firmware',
-        authorized: ALL_ROLES,
         path: '/logs/firmware',
         name: 'logs.firmware',
         navName: (t) => `${t('logs.firmware')} ${t('controller.devices.logs')}`,
@@ -118,20 +97,17 @@ const routes: Route[] = [
   },
   {
     id: 'users-group',
-    authorized: ALL_ROLES,
     name: 'users.group_title',
     icon: () => <UsersThree size={28} weight="bold" />,
     children: [
       {
         id: 'users-list-sub',
-        authorized: ALL_ROLES,
         path: '/users',
         name: 'users.title',
         component: UsersPage,
       },
       {
         id: 'management-policies',
-        authorized: ALL_ROLES,
         path: '/policies',
         name: 'policies.title',
         component: PoliciesPage,
@@ -140,20 +116,17 @@ const routes: Route[] = [
   },
   {
     id: 'system-group',
-    authorized: ALL_ROLES,
     name: 'system.title',
     icon: () => <Info size={28} weight="bold" />,
     children: [
       {
         id: 'system-configuration',
-        authorized: ALL_ROLES,
         path: '/systemConfiguration',
         name: 'system.configuration',
         component: SystemConfigurationPage,
       },
       {
         id: 'system-globalroaming',
-        authorized: ALL_ROLES,
         path: '/openRoaming',
         name: 'RAW-OpenRoaming',
         label: 'OpenRoaming',
@@ -161,14 +134,12 @@ const routes: Route[] = [
       },
       {
         id: 'system-monitoring',
-        authorized: ALL_ROLES,
         path: '/systemMonitoring',
         name: 'analytics.monitoring',
         component: MonitoringPage,
       },
       {
         id: 'system-services',
-        authorized: ALL_ROLES,
         path: '/services',
         name: 'system.services',
         component: EndpointsPage,
@@ -178,7 +149,6 @@ const routes: Route[] = [
   {
     id: 'account-page',
     hidden: true,
-    authorized: ALL_ROLES,
     path: '/account',
     name: 'account.title',
     icon: () => <UsersThree size={28} weight="bold" />,
@@ -187,7 +157,6 @@ const routes: Route[] = [
   {
     id: 'configuration-page',
     hidden: true,
-    authorized: ALL_ROLES,
     path: '/configuration/:id',
     name: 'configurations.one',
     icon: () => <UsersThree size={28} weight="bold" />,
@@ -196,7 +165,6 @@ const routes: Route[] = [
   {
     id: 'operator-page',
     hidden: true,
-    authorized: ALL_ROLES,
     path: '/operators/:id',
     name: 'operator.one',
     icon: () => <UsersThree size={28} weight="bold" />,
@@ -205,7 +173,6 @@ const routes: Route[] = [
   {
     id: 'subscriber-page',
     hidden: true,
-    authorized: ALL_ROLES,
     path: '/subscriber/:id',
     name: 'subscribers.one',
     icon: () => <UsersThree size={28} weight="bold" />,
@@ -214,7 +181,6 @@ const routes: Route[] = [
   {
     id: 'map-page',
     hidden: true,
-    authorized: ALL_ROLES,
     path: '/map',
     name: 'common.map',
     icon: () => <UsersThree size={28} weight="bold" />,
