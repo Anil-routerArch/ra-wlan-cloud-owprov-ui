@@ -317,8 +317,8 @@ const EditPolicyModal = ({ isOpen, onClose, policy }: Props) => {
       id: policy.id,
       name,
       description,
-      entity: '',
-      venue: '',
+      entity: policy.entity ?? '',
+      venue: policy.venue ?? '',
       entries,
     };
 
