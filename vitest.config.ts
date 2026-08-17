@@ -8,7 +8,7 @@ export default defineConfig({
     react({ fastRefresh: false }),
   ],
   test: {
-    environment: 'jsdom',
+    environment: 'happy-dom',
     globals: true,
   },
 });
