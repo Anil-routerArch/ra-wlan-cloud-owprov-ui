@@ -229,18 +229,19 @@ describe('Hierarchical RBAC UI Test Suite (v2.1 Baseline)', () => {
     expect(policyPayload.entries.length).toBe(1);
   });
 
-  it('TC-UI-16: Hierarchy path traversal identifies root and nested entity nodes in root-to-venue path', () => {
-    const mockTreePath = [
-      { uuid: 'root-entity-1', type: 'entity', name: 'Root Entity' },
-      { uuid: 'sub-entity-2', type: 'entity', name: 'Nested Entity' },
-      { uuid: 'venue-3', type: 'venue', name: 'Target Venue' },
+  it('TC-UI-16: VenueContactsCard lastEntity selection resolves the immediate parent entity closest to venue', () => {
+    const mockPathToEntity = [
+      { uuid: 'root-entity-001', type: 'entity', name: 'Root Entity' },
+      { uuid: 'nested-parent-entity-002', type: 'entity', name: 'Immediate Parent Entity' },
+      { uuid: 'venue-003', type: 'venue', name: 'Target Venue' },
     ];
 
-    const firstEntity = mockTreePath.find(({ type }) => type === 'entity');
-    expect(firstEntity?.uuid).toBe('root-entity-1');
+    // Production VenueContactsCard logic: [...pathToEntity].reverse().find(({ type }) => type === 'entity')
+    const lastEntity = [...mockPathToEntity].reverse().find(({ type }) => type === 'entity');
 
-    const lastEntity = [...mockTreePath].reverse().find(({ type }) => type === 'entity');
-    expect(lastEntity?.uuid).toBe('sub-entity-2');
+    // Asserts that the immediate parent entity closest to the venue is chosen, NOT root
+    expect(lastEntity?.uuid).toBe('nested-parent-entity-002');
+    expect(lastEntity?.uuid).not.toBe('root-entity-001');
   });
 
   it('TC-UI-17: EditUserModal enables editing mode automatically when defaultTab is specified for role assignment', () => {

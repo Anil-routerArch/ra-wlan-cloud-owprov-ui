@@ -85,7 +85,7 @@ const VenueContactsCard = ({ id }: Props) => {
     return [];
   }, [getEntityTree.data, id]);
 
-  const lastEntity = pathToEntity.find(({ type }) => type === 'entity');
+  const lastEntity = [...pathToEntity].reverse().find(({ type }) => type === 'entity');
 
   const openEditModal = (newContact: ContactObj) => {
     setContact(newContact);
