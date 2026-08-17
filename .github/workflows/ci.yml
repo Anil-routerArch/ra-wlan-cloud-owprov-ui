@@ -37,7 +37,6 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
-    if: ${{ secrets.DOCKER_REGISTRY_PASSWORD != '' }}
     env:
       DOCKER_REGISTRY_URL: tip-tip-wlan-cloud-ucentral.jfrog.io
       DOCKER_REGISTRY_USERNAME: ucentral
