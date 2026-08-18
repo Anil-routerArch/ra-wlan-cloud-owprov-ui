@@ -9,7 +9,11 @@ import ConfirmCloseAlert from 'components/Modals/Actions/ConfirmCloseAlert';
 import { useAuth } from 'contexts/AuthProvider';
 import useFormRef from 'hooks/useFormRef';
 
-const CreateUserModal = () => {
+type Props = {
+  onCreateSuccess?: (createdUser: { id: string }) => void;
+};
+
+const CreateUserModal = ({ onCreateSuccess }: Props) => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -23,9 +27,16 @@ const CreateUserModal = () => {
     onClose();
   };
 
+  const handleSuccess = (createdUserId?: string) => {
+    onClose();
+    if (onCreateSuccess && createdUserId) {
+      onCreateSuccess({ id: createdUserId });
+    }
+  };
+
   return (
     <>
-      {user?.userRole === 'CSR' ? null : <CreateButton onClick={onOpen} ml={2} />}
+      <CreateButton onClick={onOpen} ml={2} />
       <Modal
         isOpen={isOpen}
         onClose={closeModal}
@@ -38,7 +49,7 @@ const CreateUserModal = () => {
           />
         }
       >
-        <CreateUserForm isOpen={isOpen} onClose={onClose} formRef={formRef} />
+        <CreateUserForm isOpen={isOpen} onClose={handleSuccess} formRef={formRef} />
       </Modal>
       <ConfirmCloseAlert isOpen={showConfirm} confirm={closeCancelAndForm} cancel={closeConfirm} />
     </>

@@ -1,10 +1,10 @@
 import React, { useCallback } from 'react';
 import { Heading, SimpleGrid, Switch, Text } from '@chakra-ui/react';
 import { useTranslation } from 'react-i18next';
+import { INTERFACE_VLAN_SCHEMA } from '../../interfacesConstants';
 import NumberField from 'components/FormFields/NumberField';
 import SelectField from 'components/FormFields/SelectField';
 import useFastField from 'hooks/useFastField';
-import { INTERFACE_VLAN_SCHEMA } from '../../interfacesConstants';
 
 const VlanForm = ({ editing, index }) => {
   const { t } = useTranslation();

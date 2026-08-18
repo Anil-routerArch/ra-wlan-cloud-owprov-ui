@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { Box, Flex, Heading, SimpleGrid, Switch, Text } from '@chakra-ui/react';
+import { useFormikContext } from 'formik';
 import { useTranslation } from 'react-i18next';
 import {
   INTERFACE_IPV4_SCHEMA,
@@ -10,13 +11,12 @@ import {
   INTERFACE_IPV4_DHCP_SCHEMA,
   INTERFACE_IPV4_IGMP_SCHEMA,
 } from '../interfacesConstants';
-import ObjectArrayFieldModal from 'components/FormFields/ObjectArrayFieldModal';
 import MultiSelectField from 'components/FormFields/MultiSelectField';
 import NumberField from 'components/FormFields/NumberField';
+import ObjectArrayFieldModal from 'components/FormFields/ObjectArrayFieldModal';
 import StringField from 'components/FormFields/StringField';
 import ToggleField from 'components/FormFields/ToggleField';
 import useFastField from 'hooks/useFastField';
-import { useFormikContext } from 'formik';
 
 const PORT_OPTIONS = Array.from({ length: 41 }, (_, i) => ({
   value: `Ethernet${i}`,

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "test": "vitest run",
     "format": "prettier --write \"src/**/*x.{ts,tsx,js,jsx}\"",
     "analyze": "source-map-explorer 'build/static/js/*.js'",
     "lint": "TIMING=1 eslint \"src/**/*.{ts,tsx,js,jsx}\" --fix",
@@ -78,6 +79,8 @@
     "zustand": "^4.3.7"
   },
   "devDependencies": {
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.4",
     "@types/google.maps": "^3.52.5",
     "@types/lodash.debounce": "^4.0.7",
     "@types/node": "^18.15.11",
@@ -103,10 +106,13 @@
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-react": "^7.31.10",
     "eslint-plugin-react-hooks": "^4.6.0",
+    "happy-dom": "^20.11.2",
+    "jsdom": "^29.1.1",
     "lint-staged": "^13.2.1",
     "prettier": "^2.8.7",
     "vite-plugin-pwa": "^0.14.7",
-    "vite-tsconfig-paths": "^4.2.0"
+    "vite-tsconfig-paths": "^4.2.0",
+    "vitest": "^0.34.6"
   },
   "browserslist": {
     "production": [

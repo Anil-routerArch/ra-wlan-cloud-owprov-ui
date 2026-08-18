@@ -1,0 +1,247 @@
+import React, { useCallback, useState } from 'react';
+import {
+  Box,
+  Button,
+  Center,
+  Flex,
+  Heading,
+  IconButton,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  Tooltip,
+  useDisclosure,
+  useToast,
+} from '@chakra-ui/react';
+import { Pencil, Trash } from '@phosphor-icons/react';
+import { useTranslation } from 'react-i18next';
+import { v4 as uuid } from 'uuid';
+import CreatePolicyModal from './CreatePolicyModal';
+import EditPolicyModal from './EditPolicyModal';
+import RefreshButton from 'components/Buttons/RefreshButton';
+import { useAuth } from 'contexts/AuthProvider';
+import Card from 'components/Card';
+import CardBody from 'components/Card/CardBody';
+import CardHeader from 'components/Card/CardHeader';
+import DataTable from 'components/DataTable';
+import {
+  useGetManagementPolicies,
+  useDeleteManagementPolicy,
+  useGetEntities,
+  useGetVenues,
+  ManagementPolicy,
+} from 'hooks/Network/ManagementRoles';
+import { Column } from 'models/Table';
+import { getApiErrorMessage } from 'utils/apiErrorMessage';
+
+const PolicyTable = () => {
+  const { t } = useTranslation();
+  const { user } = useAuth();
+  const isRoot = user?.userRole === 'root';
+  const toast = useToast();
+  const [editPolicy, setEditPolicy] = useState<ManagementPolicy | null>(null);
+  const [deletePolicy, setDeletePolicy] = useState<ManagementPolicy | null>(null);
+  const { isOpen: editOpen, onOpen: openEdit, onClose: closeEdit } = useDisclosure();
+  const { isOpen: deleteOpen, onOpen: openDelete, onClose: closeDelete } = useDisclosure();
+
+  const { data: policies, refetch: refreshPolicies, isFetching } = useGetManagementPolicies();
+  const { data: entities } = useGetEntities();
+  const { data: venues } = useGetVenues();
+  const deletePolicyMutation = useDeleteManagementPolicy();
+
+  const getEntityName = (id: string) => {
+    const found = entities?.find((e) => e.id === id);
+    return found ? found.name : id;
+  };
+
+  const getVenueName = (id: string) => {
+    if (!id) return 'Entity-wide';
+    const found = venues?.find((v) => v.id === id);
+    return found ? found.name : id;
+  };
+
+  const handleDeletePolicy = useCallback((policy: ManagementPolicy) => {
+    deletePolicyMutation.mutate(policy.id, {
+      onSuccess: () => {
+        setDeletePolicy(null);
+        closeDelete();
+        toast({
+          id: `policy-delete-success-${uuid()}`,
+          title: t('common.success'),
+          description: t('crud.success_delete_obj', { obj: policy.name }),
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+          position: 'top-right',
+        });
+      },
+      onError: (e: any) => {
+        closeDelete();
+        toast({
+          id: `policy-delete-error-${uuid()}`,
+          title: t('common.error'),
+          description: getApiErrorMessage(e, 'We could not delete this policy.'),
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+          position: 'top-right',
+        });
+      },
+    });
+  }, [closeDelete, deletePolicyMutation, t, toast]);
+
+  const handleEditClick = (policy: ManagementPolicy) => {
+    setEditPolicy(policy);
+    openEdit();
+  };
+
+  const handleDeleteClick = (policy: ManagementPolicy) => {
+    setDeletePolicy(policy);
+    openDelete();
+  };
+
+  const handleDeleteClose = () => {
+    if (deletePolicyMutation.isLoading) return;
+    setDeletePolicy(null);
+    closeDelete();
+  };
+
+  const PolicyActions = ({ policy }: { policy: ManagementPolicy }) => {
+    return (
+      <Flex>
+        <Tooltip hasArrow label={t('crud.edit')} placement="top">
+          <IconButton
+            aria-label={t('crud.edit')}
+            colorScheme="blue"
+            icon={<Pencil size={20} />}
+            size="sm"
+            onClick={() => handleEditClick(policy)}
+            mr={2}
+          />
+        </Tooltip>
+        <Tooltip hasArrow label={t('crud.delete')} placement="top">
+          <Box>
+            <IconButton
+              aria-label={t('crud.delete')}
+              colorScheme="red"
+              icon={<Trash size={20} />}
+              size="sm"
+              onClick={() => handleDeleteClick(policy)}
+            />
+          </Box>
+        </Tooltip>
+      </Flex>
+    );
+  };
+
+  const columns = React.useMemo(() => {
+    const baseColumns: Column<ManagementPolicy>[] = [
+      {
+        id: 'name',
+        Header: t('common.name'),
+        Footer: '',
+        accessor: 'name',
+        customWidth: '200px',
+        customMinWidth: '150px',
+      },
+      {
+        id: 'entity',
+        Header: t('entities.one'),
+        Footer: '',
+        accessor: 'entity',
+        Cell: ({ cell }) => getEntityName(cell.row.original.entity),
+        customWidth: '150px',
+      },
+      {
+        id: 'venue',
+        Header: t('venues.one'),
+        Footer: '',
+        accessor: 'venue',
+        Cell: ({ cell }) => getVenueName(cell.row.original.venue),
+        customWidth: '150px',
+      },
+      {
+        id: 'description',
+        Header: t('common.description'),
+        Footer: '',
+        accessor: 'description',
+      },
+    ];
+
+    if (isRoot) {
+      baseColumns.push({
+        id: 'actions',
+        Header: t('common.actions'),
+        Footer: '',
+        accessor: 'id',
+        customWidth: '100px',
+        Cell: ({ cell }) => <PolicyActions policy={cell.row.original} />,
+        disableSortBy: true,
+        alwaysShow: true,
+      });
+    }
+
+    return baseColumns;
+  }, [t, entities, venues, isRoot]);
+
+  return (
+    <>
+      <Card>
+        <CardHeader mb="10px">
+          <Flex w="100%" flexDirection="row" alignItems="center">
+            <Heading size="md">{t('policies.title')}</Heading>
+            <Box ms="auto">
+              {isRoot && <CreatePolicyModal />}
+              <RefreshButton onClick={refreshPolicies} isFetching={isFetching} ml={2} />
+            </Box>
+          </Flex>
+        </CardHeader>
+        <CardBody>
+          <Box overflowX="auto" w="100%">
+            <DataTable<ManagementPolicy>
+              columns={columns}
+              data={policies ?? []}
+              isLoading={isFetching}
+              obj={t('policies.one')}
+              sortBy={[{ id: 'name', desc: false }]}
+              hiddenColumns={[]}
+              fullScreen
+              onRowClick={handleEditClick}
+            />
+          </Box>
+        </CardBody>
+      </Card>
+      <Modal isOpen={deleteOpen} onClose={handleDeleteClose} isCentered>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>{deletePolicy ? `Delete ${deletePolicy.name}` : t('crud.delete')}</ModalHeader>
+          <ModalBody>Are you sure you want to delete this management policy?</ModalBody>
+          <ModalFooter>
+            <Center w="100%">
+              <Button colorScheme="gray" mr="1" size="sm" onClick={handleDeleteClose}>
+                {t('common.cancel')}
+              </Button>
+              <Button
+                colorScheme="red"
+                ml="1"
+                size="sm"
+                onClick={() => deletePolicy && handleDeletePolicy(deletePolicy)}
+                isLoading={deletePolicyMutation.isLoading}
+              >
+                {t('common.yes')}
+              </Button>
+            </Center>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+      {editPolicy && (
+        <EditPolicyModal isOpen={editOpen} onClose={closeEdit} policy={editPolicy} />
+      )}
+    </>
+  );
+};
+
+export default PolicyTable;

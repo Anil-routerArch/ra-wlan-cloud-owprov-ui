@@ -130,7 +130,7 @@ const CreateGlobalReachAccountModal = () => {
               <Heading size="md" textDecoration="underline" mt={2}>
                 {t('roaming.global_reach')}
               </Heading>
-              <Flex my={2} wrap={'wrap'}>
+              <Flex my={2} wrap="wrap">
                 <Box w={{ base: '100%', md: 'auto' }} mb={{ base: 2, md: 0 }}>
                   <StringField
                     name="GlobalReachAcctId"
@@ -147,7 +147,7 @@ const CreateGlobalReachAccountModal = () => {
               <Heading size="md" textDecoration="underline">
                 {t('roaming.location_details_title')}
               </Heading>{' '}
-              <Flex my={2} wrap={'wrap'}>
+              <Flex my={2} wrap="wrap">
                 <Box w={{ base: '100%', md: 'auto' }} mb={{ base: 2, md: 0 }}>
                   <SelectField
                     name="country"
@@ -161,7 +161,7 @@ const CreateGlobalReachAccountModal = () => {
                   <StatePicker isDisabled={isFieldDisabled} />
                 </Box>
               </Flex>
-              <Flex my={2} wrap={'wrap'}>
+              <Flex my={2} wrap="wrap">
                 <Box w={{ base: '100%', md: 'auto' }} mb={{ base: 2, md: 0 }}>
                   <StringField
                     name="city"

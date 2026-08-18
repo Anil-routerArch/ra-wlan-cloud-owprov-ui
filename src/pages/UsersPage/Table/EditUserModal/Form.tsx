@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 import { Box, Flex, Link, useToast, Tabs, TabList, TabPanels, TabPanel, Tab, SimpleGrid } from '@chakra-ui/react';
+import { useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { Formik, Form, FormikProps } from 'formik';
 import { useTranslation } from 'react-i18next';
@@ -9,10 +10,12 @@ import * as Yup from 'yup';
 import { NotesField } from 'components/FormFields/NotesField';
 import SelectField from 'components/FormFields/SelectField';
 import StringField from 'components/FormFields/StringField';
+import { ManagementRolesTable } from 'components/ManagementRolesTable';
 import { testObjectName, testRegex } from 'constants/formTests';
 import { useAuth } from 'contexts/AuthProvider';
 import { User, useUpdateUser } from 'hooks/Network/Users';
 import useApiRequirements from 'hooks/useApiRequirements';
+import { axiosProv } from 'utils/axiosInstances';
 
 type Props = {
   editing: boolean;
@@ -20,15 +23,21 @@ type Props = {
   onClose: () => void;
   selectedUser: User;
   formRef: React.Ref<FormikProps<User>>;
+  defaultTab?: number;
 };
 
-const UpdateUserForm = ({ editing, isOpen, onClose, selectedUser, formRef }: Props) => {
+const UpdateUserForm = ({ editing, isOpen, onClose, selectedUser, formRef, defaultTab }: Props) => {
   const { t } = useTranslation();
   const toast = useToast();
   const { user } = useAuth();
   const [formKey, setFormKey] = useState(uuid());
   const { passwordPolicyLink, passwordPattern } = useApiRequirements();
   const updateUser = useUpdateUser();
+  const queryClient = useQueryClient();
+
+  const initialValues = React.useMemo(() => ({
+    ...selectedUser,
+  }), [selectedUser]);
 
   const UpdateUserSchema = () =>
     Yup.object().shape({
@@ -60,6 +69,15 @@ const UpdateUserForm = ({ editing, isOpen, onClose, selectedUser, formRef }: Pro
     return false;
   };
 
+  const availableRoleOptions = [
+    { value: 'accounting', label: 'Accounting' },
+    { value: 'admin', label: 'Admin' },
+    { value: 'csr', label: 'CSR' },
+    { value: 'installer', label: 'Installer' },
+    { value: 'noc', label: 'NOC' },
+    ...(user?.userRole === 'root' ? [{ value: 'root', label: 'Root' }] : []),
+  ];
+
   useEffect(() => {
     setFormKey(uuid());
   }, [isOpen, editing]);
@@ -69,7 +87,7 @@ const UpdateUserForm = ({ editing, isOpen, onClose, selectedUser, formRef }: Pro
       innerRef={formRef}
       enableReinitialize
       key={formKey}
-      initialValues={selectedUser}
+      initialValues={initialValues}
       validationSchema={UpdateUserSchema}
       onSubmit={({ name, description, currentPassword, userRole, notes }, { setSubmitting, resetForm }) =>
         updateUser.mutateAsync(
@@ -82,7 +100,7 @@ const UpdateUserForm = ({ editing, isOpen, onClose, selectedUser, formRef }: Pro
             notes: notes.filter((note) => note.isNew),
           },
           {
-            onSuccess: () => {
+            onSuccess: async () => {
               setSubmitting(false);
               resetForm();
               toast({
@@ -116,10 +134,11 @@ const UpdateUserForm = ({ editing, isOpen, onClose, selectedUser, formRef }: Pro
       }
     >
       <>
-        <Tabs variant="enclosed">
+        <Tabs variant="enclosed" defaultIndex={defaultTab ?? 0}>
           <TabList>
             <Tab>{t('common.main')}</Tab>
             <Tab>{t('common.notes')}</Tab>
+            <Tab>Access Policy</Tab>
           </TabList>
           <TabPanels>
             <TabPanel>
@@ -129,15 +148,7 @@ const UpdateUserForm = ({ editing, isOpen, onClose, selectedUser, formRef }: Pro
                   <SelectField
                     name="userRole"
                     label={t('user.role')}
-                    options={[
-                      { value: 'accounting', label: 'Accounting' },
-                      { value: 'admin', label: 'Admin' },
-                      { value: 'csr', label: 'CSR' },
-                      { value: 'installer', label: 'Installer' },
-                      { value: 'noc', label: 'NOC' },
-                      { value: 'root', label: 'Root' },
-                      { value: 'system', label: 'System' },
-                    ]}
+                    options={availableRoleOptions}
                     isRequired
                     isDisabled={!canEditRole() || formIsDisabled()}
                   />
@@ -154,6 +165,9 @@ const UpdateUserForm = ({ editing, isOpen, onClose, selectedUser, formRef }: Pro
             </TabPanel>
             <TabPanel>
               <NotesField isDisabled={!editing} />
+            </TabPanel>
+            <TabPanel>
+              <ManagementRolesTable userId={selectedUser.id} isReadOnly={!editing} />
             </TabPanel>
           </TabPanels>
         </Tabs>

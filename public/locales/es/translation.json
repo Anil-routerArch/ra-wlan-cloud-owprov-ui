@@ -1197,7 +1197,8 @@
 		"suspend_success": "El usuario ahora está suspendido",
 		"suspended": "Suspendido",
 		"title": "Usuarios",
-		"waitiing_for_email_verification": "Correo electrónico no verificado"
+		"waitiing_for_email_verification": "Correo electrónico no verificado",
+		"group_title": "IAM"
 	},
 	"venues": {
 		"confirm_remove_contact": "¿Quieres eliminar este contacto de este lugar?",
@@ -1223,5 +1224,10 @@
 		"use_existing": "Utilizar existente",
 		"use_existing_contacts": "Usar contactos existentes",
 		"use_this_contact": "Usa este contacto"
+	},
+	"policies": {
+		"title": "Políticas",
+		"one": "Política",
+		"error_fetching": "Error al obtener las políticas: {{e}}"
 	}
 }

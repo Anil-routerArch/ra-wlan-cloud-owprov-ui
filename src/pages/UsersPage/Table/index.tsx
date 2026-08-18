@@ -21,12 +21,14 @@ const UserTable = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [editId, setEditId] = useState('');
+  const [editTab, setEditTab] = useState(0);
   const [hiddenColumns, setHiddenColumns] = React.useState<string[]>([]);
   const { isOpen: editOpen, onOpen: openEdit, onClose: closeEdit } = useDisclosure();
   const { data: users, refetch: refreshUsers, isFetching } = useGetUsers();
 
-  const openEditModal = React.useCallback((editUser: User) => {
+  const openEditModal = React.useCallback((editUser: { id: string }, defaultTab = 0) => {
     setEditId(editUser.id);
+    setEditTab(defaultTab);
     openEdit();
   }, []);
 
@@ -124,7 +126,7 @@ const UserTable = () => {
                 setHiddenColumns={setHiddenColumns}
                 preference="provisioning.userTable.hiddenColumns"
               />
-              <CreateUserModal />
+              <CreateUserModal onCreateSuccess={(createdUser) => openEditModal(createdUser, 2)} />
               <RefreshButton onClick={refreshUsers} isFetching={isFetching} ml={2} />
             </Box>
           </Flex>
@@ -144,7 +146,7 @@ const UserTable = () => {
           </Box>
         </CardBody>
       </Card>
-      <EditUserModal isOpen={editOpen} onClose={closeEdit} userId={editId} />
+      <EditUserModal isOpen={editOpen} onClose={closeEdit} userId={editId} defaultTab={editTab} />
     </>
   );
 };

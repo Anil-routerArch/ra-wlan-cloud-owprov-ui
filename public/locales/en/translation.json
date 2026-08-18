@@ -1203,7 +1203,8 @@
     "suspend_success": "User is now suspended",
     "suspended": "Suspended",
     "title": "Users",
-    "waitiing_for_email_verification": "Email Not Verified"
+    "waitiing_for_email_verification": "Email Not Verified",
+    "group_title": "IAM"
   },
   "venues": {
     "confirm_remove_contact": "Do you want to remove this contact from this venue?",
@@ -1229,5 +1230,10 @@
     "use_existing": "Use Existing",
     "use_existing_contacts": "Use Existing Contacts",
     "use_this_contact": "Use this contact"
+  },
+  "policies": {
+    "title": "Policies",
+    "one": "Policy",
+    "error_fetching": "Error fetching policies: {{e}}"
   }
 }

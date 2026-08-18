@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { Box, Flex, Heading, SimpleGrid, Switch, Text } from '@chakra-ui/react';
+import { useFormikContext } from 'formik';
 import { useTranslation } from 'react-i18next';
 import Card from 'components/Card';
 import CardBody from 'components/Card/CardBody';
@@ -8,7 +9,6 @@ import NumberField from 'components/FormFields/NumberField';
 import StringField from 'components/FormFields/StringField';
 import ToggleField from 'components/FormFields/ToggleField';
 import useFastField from 'hooks/useFastField';
-import { useFormikContext } from 'formik';
 
 const Unit = ({ editing }) => {
   const { t } = useTranslation();

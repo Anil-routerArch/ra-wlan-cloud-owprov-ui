@@ -26,14 +26,6 @@ import { useTranslation } from 'react-i18next';
 import { v4 as uuid } from 'uuid';
 import InternalFormAccess from '../../../common/InternalFormAccess';
 import SectionGeneralCard from '../../../common/SectionGeneralCard';
-import CreateButton from 'components/Buttons/CreateButton';
-import Card from 'components/Card';
-import CardBody from 'components/Card/CardBody';
-import DeleteButton from 'components/Buttons/DeleteButton';
-import NumberField from 'components/FormFields/NumberField';
-import SelectField from 'components/FormFields/SelectField';
-import ToggleField from 'components/FormFields/ToggleField';
-import { ConfigurationSectionShape } from 'constants/propShapes';
 import {
   DEFAULT_STORM_CONTROL,
   DEFAULT_BPDU_GUARD,
@@ -51,6 +43,14 @@ import {
   VOICE_VLAN_DETECT_OPTIONS,
   VOICE_VLAN_MODE_OPTIONS,
 } from './ethernetConstants';
+import CreateButton from 'components/Buttons/CreateButton';
+import DeleteButton from 'components/Buttons/DeleteButton';
+import Card from 'components/Card';
+import CardBody from 'components/Card/CardBody';
+import NumberField from 'components/FormFields/NumberField';
+import SelectField from 'components/FormFields/SelectField';
+import ToggleField from 'components/FormFields/ToggleField';
+import { ConfigurationSectionShape } from 'constants/propShapes';
 
 const propTypes = {
   editing: PropTypes.bool.isRequired,

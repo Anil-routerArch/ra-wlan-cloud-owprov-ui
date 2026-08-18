@@ -1,12 +1,12 @@
 import { Note } from './Note';
 
+// Note: 'system' role was intentionally sunsetted per updated RBAC specifications.
 export type UserRole =
   | 'root'
   | 'admin'
   | 'subscriber'
   | 'partner'
   | 'csr'
-  | 'system'
   | 'installer'
   | 'noc'
   | 'accounting';

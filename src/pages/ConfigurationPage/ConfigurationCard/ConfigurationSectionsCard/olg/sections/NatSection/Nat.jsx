@@ -2,11 +2,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Box, Center, TabList, TabPanel, TabPanels, Tabs } from '@chakra-ui/react';
 import PropTypes from 'prop-types';
-import Card from 'components/Card';
-import CardBody from 'components/Card/CardBody';
 import CreateRuleButton from './CreateRuleButton';
 import RuleTab from './RuleTab';
 import SingleRule from './SingleRule';
+import Card from 'components/Card';
+import CardBody from 'components/Card/CardBody';
 
 const propTypes = {
   editing: PropTypes.bool.isRequired,

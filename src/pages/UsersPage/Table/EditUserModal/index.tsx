@@ -16,9 +16,10 @@ type Props = {
   userId?: string;
   isOpen: boolean;
   onClose: () => void;
+  defaultTab?: number;
 };
 
-const EditUserModal = ({ isOpen, onClose, userId }: Props) => {
+const EditUserModal = ({ isOpen, onClose, userId, defaultTab }: Props) => {
   const { t } = useTranslation();
   const [editing, setEditing] = useBoolean();
   const queryClient = useQueryClient();
@@ -40,8 +41,14 @@ const EditUserModal = ({ isOpen, onClose, userId }: Props) => {
   };
 
   useEffect(() => {
-    if (isOpen) setEditing.off();
-  }, [isOpen]);
+    if (isOpen) {
+      if (defaultTab !== undefined && defaultTab !== 0) {
+        setEditing.on();
+      } else {
+        setEditing.off();
+      }
+    }
+  }, [isOpen, defaultTab]);
 
   return (
     <>
@@ -86,7 +93,7 @@ const EditUserModal = ({ isOpen, onClose, userId }: Props) => {
         }
       >
         {!isFetching && user ? (
-          <UpdateUserForm editing={editing} selectedUser={user} isOpen={isOpen} onClose={onClose} formRef={formRef} />
+          <UpdateUserForm editing={editing} selectedUser={user} isOpen={isOpen} onClose={onClose} formRef={formRef} defaultTab={defaultTab} />
         ) : (
           <Center>
             <Spinner />

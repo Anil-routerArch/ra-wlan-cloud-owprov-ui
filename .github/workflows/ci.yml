@@ -1,4 +1,4 @@
-name: Build Docker image
+name: CI
 
 on:
   push:
@@ -7,66 +7,64 @@ on:
     branches:
       - main
       - 'release/*'
+      - 'anil-feature-ui'
     tags:
       - 'v*'
   pull_request:
     branches:
       - main
       - 'release/*'
+      - 'anil-feature-ui'
 
 defaults:
   run:
     shell: bash
 
 jobs:
-  docker:
+  test:
+    name: Run Vitest UI Tests
     runs-on: ubuntu-latest
-    env:
-      DOCKER_REGISTRY_URL: tip-tip-wlan-cloud-ucentral.jfrog.io
-      DOCKER_REGISTRY_USERNAME: ucentral
     steps:
-    - name: Checkout actions repo
-      uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
       with:
-        repository: Telecominfraproject/.github
-        path: github
+        node-version: '18'
+        cache: 'npm'
 
-    - name: Build and push Docker image
-      uses: ./github/composite-actions/docker-image-build
-      with:
-        image_name: owprov-ui
-        registry: tip-tip-wlan-cloud-ucentral.jfrog.io
-        registry_user: ucentral
-        registry_password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+    - name: Install dependencies
+      run: npm ci
 
-    - name: Notify on failure via Slack
-      if: failure() && github.ref == 'refs/heads/main'
-      uses: rtCamp/action-slack-notify@v2
-      env:
-        SLACK_USERNAME: GitHub Actions failure notifier
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-        SLACK_COLOR: "${{ job.status }}"
-        SLACK_ICON: https://raw.githubusercontent.com/quintessence/slack-icons/master/images/github-logo-slack-icon.png
-        SLACK_TITLE: Docker build failed for OWProv-UI service
+    - name: Run Vitest tests
+      run: npm test -- --passWithNoTests
 
-  trigger-deploy-to-dev:
+  build-bundle:
+    name: Production UI Build Validation
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    needs:
-      - docker
     steps:
-    - name: Checkout actions repo
-      uses: actions/checkout@v3
-      with:
-        repository: Telecominfraproject/.github
-        path: github
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-    - name: Trigger deployment of the latest version to dev instance and wait for result
-      uses: ./github/composite-actions/trigger-workflow-and-wait
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
       with:
-        owner: Telecominfraproject
-        repo: wlan-testing
-        workflow: ucentralgw-dev-deployment.yaml
-        token: ${{ secrets.WLAN_TESTING_PAT }}
-        ref: master
-        inputs: '{"force_latest": "true"}'
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build Web Production Assets
+      run: npm run build
+
+  docker-build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Build Docker image
+      run: docker build -t owprov-ui:latest .

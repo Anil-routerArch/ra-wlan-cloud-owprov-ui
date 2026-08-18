@@ -27,7 +27,7 @@ export type CreateUserFormValues = {
 
 type Props = {
   isOpen: boolean;
-  onClose: () => void;
+  onClose: (createdUserId?: string) => void;
   formRef: React.Ref<FormikProps<CreateUserFormValues>>;
 };
 
@@ -102,6 +102,16 @@ const CreateUserForm = ({ isOpen, onClose, formRef }: Props) => {
     return 'csr';
   };
 
+  // Note: 'system' role was intentionally omitted per updated RBAC specifications.
+  const availableRoleOptions = [
+    { value: 'accounting', label: 'Accounting' },
+    { value: 'admin', label: 'Admin' },
+    { value: 'csr', label: 'CSR' },
+    { value: 'installer', label: 'Installer' },
+    { value: 'noc', label: 'NOC' },
+    ...(user?.userRole === 'root' ? [{ value: 'root', label: 'Root' }] : []),
+  ];
+
   useEffect(() => {
     setFormKey(uuid());
   }, [isOpen]);
@@ -125,7 +135,9 @@ const CreateUserForm = ({ isOpen, onClose, formRef }: Props) => {
       validationSchema={user?.userRole === 'root' ? CreateUserSchema : CreateUserNonRootSchema}
       onSubmit={(formData, { setSubmitting, resetForm }) =>
         createUser.mutate(createParameters(formData), {
-          onSuccess: () => {
+          onSuccess: async (response) => {
+            const createdUserId = response?.data?.id;
+
             setSubmitting(false);
             resetForm();
             toast({
@@ -139,7 +151,7 @@ const CreateUserForm = ({ isOpen, onClose, formRef }: Props) => {
               isClosable: true,
               position: 'top-right',
             });
-            onClose();
+            onClose(createdUserId);
           },
           onError: (e) => {
             setSubmitting(false);
@@ -157,39 +169,33 @@ const CreateUserForm = ({ isOpen, onClose, formRef }: Props) => {
         })
       }
     >
-      <Form>
-        <SimpleGrid minChildWidth="300px" spacing="20px">
-          <StringField name="email" label={t('common.email')} isRequired />
-          <StringField name="name" label={t('common.name')} isRequired />
-          <SelectField
-            name="userRole"
-            label={t('user.role')}
-            options={[
-              { value: 'accounting', label: 'Accounting' },
-              { value: 'admin', label: 'Admin' },
-              { value: 'csr', label: 'CSR' },
-              { value: 'installer', label: 'Installer' },
-              { value: 'noc', label: 'NOC' },
-              { value: 'root', label: 'Root' },
-              { value: 'system', label: 'System' },
-            ]}
-            isRequired
-          />
-          <StringField name="currentPassword" label={t('user.password')} isRequired hideButton />
-          <ToggleField name="changePassword" label={t('users.change_password')} />
-          <ToggleField name="emailValidation" label={t('users.email_validation')} />
-          <StringField name="description" label={t('common.description')} />
-          <StringField name="note" label={t('common.note')} />
-        </SimpleGrid>
-        <Flex justifyContent="center" alignItems="center" maxW="100%" mt={4} mb={6}>
-          <Box w="100%">
-            <Link href={passwordPolicyLink} isExternal>
-              {t('login.password_policy')}
-              <ExternalLinkIcon mx="2px" />
-            </Link>
-          </Box>
-        </Flex>
-      </Form>
+      {() => (
+        <Form>
+          <SimpleGrid minChildWidth="300px" spacing="20px">
+            <StringField name="email" label={t('common.email')} isRequired />
+            <StringField name="name" label={t('common.name')} isRequired />
+            <SelectField
+              name="userRole"
+              label={t('user.role')}
+              options={availableRoleOptions}
+              isRequired
+            />
+            <StringField name="currentPassword" label={t('user.password')} isRequired hideButton />
+            <ToggleField name="changePassword" label={t('users.change_password')} />
+            <ToggleField name="emailValidation" label={t('users.email_validation')} />
+            <StringField name="description" label={t('common.description')} />
+            <StringField name="note" label={t('common.note')} />
+          </SimpleGrid>
+          <Flex justifyContent="center" alignItems="center" maxW="100%" mt={4} mb={6}>
+            <Box w="100%">
+              <Link href={passwordPolicyLink} isExternal>
+                {t('login.password_policy')}
+                <ExternalLinkIcon mx="2px" />
+              </Link>
+            </Box>
+          </Flex>
+        </Form>
+      )}
     </Formik>
   );
 };

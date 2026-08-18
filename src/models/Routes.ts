@@ -4,7 +4,7 @@ export type RouteName = string | ((t: (s: string) => string) => string);
 
 export type SubRoute = {
   id: string;
-  authorized: string[];
+  authorized?: string[];
   path: string;
   name: RouteName;
   label?: string;
@@ -20,7 +20,7 @@ export type SubRoute = {
 
 export type RouteGroup = {
   id: string;
-  authorized: string[];
+  authorized?: string[];
   name: RouteName;
   label?: string;
   icon: (active: boolean) => React.ReactElement;
@@ -35,7 +35,7 @@ export type RouteGroup = {
 
 export type SingleRoute = {
   id: string;
-  authorized: string[];
+  authorized?: string[];
   path: string;
   name: RouteName;
   label?: string;
