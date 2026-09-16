@@ -17,6 +17,7 @@ export type ManagementRole = {
 };
 
 const getManagementRoles = async (userId?: string) =>
+export const getManagementRoles = async (userId?: string) =>
   axiosProv
     .get('managementRole', { params: userId ? { userId } : undefined })
     .then(({ data }) => data.roles as ManagementRole[]);
@@ -69,6 +70,13 @@ export type CreateManagementRole = {
 
 const createManagementRole = async (newRole: CreateManagementRole) =>
   axiosProvV2.post('managementRole/0', newRole).then(({ data }) => data.roles as ManagementRole[]);
+export const createManagementRole = async (newRole: CreateManagementRole) =>
+  axiosProvV2.post('managementRole/0', newRole).then(({ data }) => {
+    if (data?.roles && Array.isArray(data.roles)) {
+      return data.roles as ManagementRole[];
+    }
+    return [data as ManagementRole];
+  });
 
 export const useCreateManagementRole = () => {
   const queryClient = useQueryClient();
