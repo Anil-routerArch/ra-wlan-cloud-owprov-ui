@@ -17,17 +17,9 @@ export type ManagementRole = {
 };
 
 const getManagementRoles = async (userId?: string) =>
-  axiosProvV2
+  axiosProv
     .get('managementRole', { params: userId ? { userId } : undefined })
-    .then(({ data }) => data.roles as ManagementRole[])
-    .catch((err) => {
-      if (err?.response?.status === 400 || err?.response?.status === 404) {
-        return axiosProv
-          .get('managementRole', { params: userId ? { userId } : undefined })
-          .then(({ data }) => data.roles as ManagementRole[]);
-      }
-      throw err;
-    });
+    .then(({ data }) => data.roles as ManagementRole[]);
 
 export const useGetManagementRoles = (userId?: string) =>
   useQuery(['managementRoles', userId], () => getManagementRoles(userId), {
