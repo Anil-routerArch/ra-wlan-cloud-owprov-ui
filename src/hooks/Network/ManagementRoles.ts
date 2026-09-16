@@ -16,7 +16,6 @@ export type ManagementRole = {
   modified?: number;
 };
 
-const getManagementRoles = async (userId?: string) =>
 export const getManagementRoles = async (userId?: string) =>
   axiosProv
     .get('managementRole', { params: userId ? { userId } : undefined })
@@ -68,8 +67,6 @@ export type CreateManagementRole = {
   notes?: Note[];
 };
 
-const createManagementRole = async (newRole: CreateManagementRole) =>
-  axiosProvV2.post('managementRole/0', newRole).then(({ data }) => data.roles as ManagementRole[]);
 export const createManagementRole = async (newRole: CreateManagementRole) =>
   axiosProvV2.post('managementRole/0', newRole).then(({ data }) => {
     if (data?.roles && Array.isArray(data.roles)) {
