@@ -49,6 +49,7 @@ import {
   useGetVenues,
   useGetManagementPolicies,
   ManagementRole,
+  CreateManagementRole,
 } from 'hooks/Network/ManagementRoles';
 import { getApiErrorMessage } from 'utils/apiErrorMessage';
 type Props = {
@@ -169,14 +170,12 @@ export const ManagementRolesTable = ({ userId, isReadOnly = false }: Props) => {
       return;
     }
 
-    const newRole = {
-      id: uuid(),
+    const newRole: CreateManagementRole = {
       name: `Policy-${uuid().substring(0, 8)}`,
       description: `User role assignment`,
       managementPolicy: selectedPolicy,
       users: [userId],
       entity: selectedEntity,
-      venue: '',
       venueIds: selectedVenueIds,
     };
 

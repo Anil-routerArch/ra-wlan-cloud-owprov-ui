@@ -27,17 +27,47 @@ export const useGetManagementRoles = (userId?: string) =>
     staleTime: 1000 * 60 * 5,
   });
 
-export const getManagementRole = async (roleId: string, expandInUse?: boolean) =>
+export type ExpandedUseEntry = {
+  uuid: string;
+  name: string;
+  description?: string;
+};
+
+export type ExpandedUseEntryMapList = {
+  entries: Record<string, ExpandedUseEntry[]>;
+};
+
+export type GetManagementRoleResult<T extends boolean | undefined> = T extends true
+  ? ExpandedUseEntryMapList
+  : ManagementRole;
+
+export const getManagementRole = async <T extends boolean | undefined = false>(
+  roleId: string,
+  expandInUse?: T
+): Promise<GetManagementRoleResult<T>> =>
   axiosProvV2
     .get(`managementRole/${roleId}`, { params: expandInUse ? { expandInUse } : undefined })
-    .then(({ data }) => data);
+    .then(({ data }) => data as GetManagementRoleResult<T>);
 
-export const useGetManagementRole = (roleId: string, expandInUse?: boolean) =>
+export const useGetManagementRole = <T extends boolean | undefined = false>(
+  roleId: string,
+  expandInUse?: T
+) =>
   useQuery(['managementRole', roleId, expandInUse], () => getManagementRole(roleId, expandInUse), {
     enabled: !!roleId,
   });
 
-const createManagementRole = async (newRole: ManagementRole) =>
+export type CreateManagementRole = {
+  name: string;
+  description?: string;
+  managementPolicy: string;
+  users: string[];
+  entity: string;
+  venueIds?: string[];
+  notes?: Note[];
+};
+
+const createManagementRole = async (newRole: CreateManagementRole) =>
   axiosProvV2.post('managementRole/0', newRole).then(({ data }) => data.roles as ManagementRole[]);
 
 export const useCreateManagementRole = () => {
@@ -55,8 +85,9 @@ const updateManagementRole = async (role: ManagementRole) =>
 export const useUpdateManagementRole = () => {
   const queryClient = useQueryClient();
   return useMutation(updateManagementRole, {
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries(['managementRoles']);
+      queryClient.invalidateQueries(['managementRole', variables.id]);
     },
   });
 };
@@ -67,8 +98,9 @@ const deleteManagementRole = async (roleId: string) =>
 export const useDeleteManagementRole = () => {
   const queryClient = useQueryClient();
   return useMutation(deleteManagementRole, {
-    onSuccess: () => {
+    onSuccess: (_data, roleId) => {
       queryClient.invalidateQueries(['managementRoles']);
+      queryClient.invalidateQueries(['managementRole', roleId]);
     },
   });
 };
