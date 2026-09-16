@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Note } from 'models/Note';
-import { axiosProv } from 'utils/axiosInstances';
+import { axiosProv, axiosProvV2 } from 'utils/axiosInstances';
 
 export type ManagementRole = {
   id: string;
@@ -17,9 +17,17 @@ export type ManagementRole = {
 };
 
 const getManagementRoles = async (userId?: string) =>
-  axiosProv
+  axiosProvV2
     .get('managementRole', { params: userId ? { userId } : undefined })
-    .then(({ data }) => data.roles as ManagementRole[]);
+    .then(({ data }) => data.roles as ManagementRole[])
+    .catch((err) => {
+      if (err?.response?.status === 400 || err?.response?.status === 404) {
+        return axiosProv
+          .get('managementRole', { params: userId ? { userId } : undefined })
+          .then(({ data }) => data.roles as ManagementRole[]);
+      }
+      throw err;
+    });
 
 export const useGetManagementRoles = (userId?: string) =>
   useQuery(['managementRoles', userId], () => getManagementRoles(userId), {
@@ -27,8 +35,18 @@ export const useGetManagementRoles = (userId?: string) =>
     staleTime: 1000 * 60 * 5,
   });
 
+export const getManagementRole = async (roleId: string, expandInUse?: boolean) =>
+  axiosProvV2
+    .get(`managementRole/${roleId}`, { params: expandInUse ? { expandInUse } : undefined })
+    .then(({ data }) => data);
+
+export const useGetManagementRole = (roleId: string, expandInUse?: boolean) =>
+  useQuery(['managementRole', roleId, expandInUse], () => getManagementRole(roleId, expandInUse), {
+    enabled: !!roleId,
+  });
+
 const createManagementRole = async (newRole: ManagementRole) =>
-  axiosProv.post(`managementRole/${newRole.id}`, newRole);
+  axiosProvV2.post('managementRole/0', newRole).then(({ data }) => data.roles as ManagementRole[]);
 
 export const useCreateManagementRole = () => {
   const queryClient = useQueryClient();
@@ -40,7 +58,7 @@ export const useCreateManagementRole = () => {
 };
 
 const updateManagementRole = async (role: ManagementRole) =>
-  axiosProv.put(`managementRole/${role.id}`, role);
+  axiosProvV2.put(`managementRole/${role.id}`, role).then(({ data }) => data as ManagementRole);
 
 export const useUpdateManagementRole = () => {
   const queryClient = useQueryClient();
@@ -52,7 +70,7 @@ export const useUpdateManagementRole = () => {
 };
 
 const deleteManagementRole = async (roleId: string) =>
-  axiosProv.delete(`managementRole/${roleId}`);
+  axiosProvV2.delete(`managementRole/${roleId}`);
 
 export const useDeleteManagementRole = () => {
   const queryClient = useQueryClient();

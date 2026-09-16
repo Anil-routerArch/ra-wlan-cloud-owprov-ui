@@ -68,6 +68,36 @@ prov.interceptors.response.use(
   },
 );
 
+const provV2 = axios.default.create({ baseURL: secUrl.replace('/api/v1', '/api/v2') });
+
+provV2.defaults.timeout = 120000;
+provV2.defaults.headers.get.Accept = 'application/json';
+provV2.defaults.headers.post.Accept = 'application/json';
+
+provV2.interceptors.response.use(
+  // Success actions
+  undefined,
+  (error: AxiosError) => {
+    switch (error?.response?.status) {
+      case 401:
+        break;
+      case 403:
+        if (
+          error.response.data?.ErrorCode === AUTH_EXPIRED_TOKEN_CODE ||
+          error.response.data?.ErrorCode === AUTH_INVALID_TOKEN_CODE
+        ) {
+          localStorage.removeItem('access_token');
+          sessionStorage.clear();
+          window.location.href = 'login';
+        }
+        break;
+      default:
+        break;
+    }
+    return Promise.reject(error);
+  },
+);
+
 const gw = axios.default.create({ baseURL: secUrl });
 
 gw.defaults.timeout = 120000;
@@ -279,6 +309,7 @@ rrm.interceptors.response.use(
 );
 
 export const axiosProv = prov;
+export const axiosProvV2 = provV2;
 export const axiosSec = sec;
 export const axiosGw = gw;
 export const axiosFms = fms;
