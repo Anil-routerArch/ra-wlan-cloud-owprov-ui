@@ -90,8 +90,9 @@ export type UpdateManagementRole = {
   id: string;
   name?: string;
   description?: string;
-  managementPolicy: string;
+  managementPolicy?: string;
   notes?: Note[];
+  tags?: string[];
 };
 
 export const updateManagementRole = async ({
@@ -100,11 +101,14 @@ export const updateManagementRole = async ({
   description,
   managementPolicy,
   notes,
+  tags,
 }: UpdateManagementRole) => {
-  const payload: Record<string, unknown> = { managementPolicy };
+  const payload: Record<string, unknown> = {};
   if (name !== undefined) payload.name = name;
   if (description !== undefined) payload.description = description;
+  if (managementPolicy !== undefined) payload.managementPolicy = managementPolicy;
   if (notes !== undefined) payload.notes = notes;
+  if (tags !== undefined) payload.tags = tags;
 
   return axiosProvV2.put(`managementRole/${id}`, payload).then(({ data }) => data as ManagementRole);
 };

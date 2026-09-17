@@ -200,6 +200,7 @@ describe('V2 Management Role Network Contract & Payload Verification', () => {
       entity: 'ent-1',
       venue: 'ven-1',
       inUse: ['device-1'],
+      tags: ['admin', 'security'],
       created: 1600000000,
       modified: 1600001000,
     };
@@ -215,10 +216,12 @@ describe('V2 Management Role Network Contract & Payload Verification', () => {
       name: 'Updated Role Name',
       description: 'Updated Description',
       managementPolicy: 'pol-uuid-2',
+      tags: ['admin', 'security'],
     });
 
-    // Assert that immutable scope & server metadata fields are NEVER sent in the PUT body:
+    // Assert that writable tags are retained while immutable scope & server metadata fields are NEVER sent in the PUT body:
     const sentPayload = (axiosProvV2.put as any).mock.calls[0][1];
+    expect(sentPayload).toHaveProperty('tags', ['admin', 'security']);
     expect(sentPayload).not.toHaveProperty('id');
     expect(sentPayload).not.toHaveProperty('entity');
     expect(sentPayload).not.toHaveProperty('venue');
