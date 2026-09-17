@@ -69,10 +69,10 @@ export type CreateManagementRole = {
 
 export const createManagementRole = async (newRole: CreateManagementRole) =>
   axiosProvV2.post('managementRole/0', newRole).then(({ data }) => {
-    if (data?.roles && Array.isArray(data.roles)) {
-      return data.roles as ManagementRole[];
+    if (!data?.roles || !Array.isArray(data.roles)) {
+      throw new Error('Invalid response from V2 managementRole API: expected { roles: [...] } envelope');
     }
-    return [data as ManagementRole];
+    return data.roles as ManagementRole[];
   });
 
 export const useCreateManagementRole = () => {

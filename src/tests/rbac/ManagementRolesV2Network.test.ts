@@ -109,7 +109,7 @@ describe('V2 Management Role Network Contract & Payload Verification', () => {
     expect(result).toEqual(mockRoles);
   });
 
-  it('3. Safely unwraps single-object fallback response without returning undefined', async () => {
+  it('3. Rejects with an error when V2 response does not contain a valid { roles: [...] } envelope', async () => {
     const singleRole = {
       id: 'role-single-1',
       name: 'Single Role',
@@ -119,7 +119,7 @@ describe('V2 Management Role Network Contract & Payload Verification', () => {
       venue: '',
     };
 
-    // Simulate single-object response
+    // Simulate invalid legacy single-object response (missing roles array)
     (axiosProvV2.post as any).mockResolvedValueOnce({
       data: singleRole,
     });
@@ -132,9 +132,9 @@ describe('V2 Management Role Network Contract & Payload Verification', () => {
       venueIds: [],
     };
 
-    const result = await createManagementRole(payload);
-
-    expect(result).toEqual([singleRole]);
+    await expect(createManagementRole(payload)).rejects.toThrow(
+      'Invalid response from V2 managementRole API: expected { roles: [...] } envelope'
+    );
   });
 
   it('4. Role listing queries strictly target V1 endpoint via axiosProv.get', async () => {
