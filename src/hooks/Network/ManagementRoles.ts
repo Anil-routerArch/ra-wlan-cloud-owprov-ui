@@ -11,6 +11,8 @@ export type ManagementRole = {
   entity: string;
   venue: string;
   venueIds?: string[];
+  inUse?: string[];
+  tags?: string[];
   notes?: Note[];
   created?: number;
   modified?: number;
