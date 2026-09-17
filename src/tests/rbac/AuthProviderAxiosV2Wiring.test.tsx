@@ -175,8 +175,8 @@ describe('AuthProvider → axiosProv & axiosProvV2 Integration Wiring', () => {
     });
   });
 
-  it('6. useGetManagementRole query executes against axiosProvV2 when baseURL is configured', async () => {
-    mockAxiosProvV2.defaults.baseURL = 'https://owprov.example.com:16005/api/v2';
+  it('6. useGetManagementRole query remains disabled if other endpoints are discovered but owprov is absent', async () => {
+    mockAxiosProvV2.defaults.baseURL = '';
     mockAxiosProvV2.get = vi.fn().mockResolvedValue({ data: { id: 'role-test-2' } });
 
     const queryClient = new QueryClient({
@@ -184,17 +184,32 @@ describe('AuthProvider → axiosProv & axiosProvV2 Integration Wiring', () => {
     });
 
     const TestRoleConsumer = () => {
-      useGetManagementRole('role-test-2');
-      return <div>Role Consumer</div>;
+      const { isFetching } = useGetManagementRole('role-test-2');
+      return <div data-testid="isFetching">{isFetching ? 'fetching' : 'idle'}</div>;
     };
 
-    render(
+    const { getByTestId } = render(
       <QueryClientProvider client={queryClient}>
-        <TestRoleConsumer />
+        <AuthProvider token="token-xyz">
+          <TestRoleConsumer />
+        </AuthProvider>
       </QueryClientProvider>
     );
 
-    expect(mockAxiosProvV2.get).toHaveBeenCalledWith('managementRole/role-test-2', { params: undefined });
+    // Other endpoints discovered (owgw), but NO owprov:
+    act(() => {
+      capturedEndpointsOnSuccess!([
+        {
+          type: 'owgw',
+          uri: 'https://owgw.example.com:16002',
+          authenticationType: 'sec',
+          version: '1',
+        },
+      ]);
+    });
+
+    expect(getByTestId('isFetching').textContent).toBe('idle');
+    expect(mockAxiosProvV2.get).not.toHaveBeenCalled();
   });
 });
 

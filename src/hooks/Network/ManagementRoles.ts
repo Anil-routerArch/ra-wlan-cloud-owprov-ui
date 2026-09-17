@@ -58,7 +58,7 @@ export const useGetManagementRole = <T extends boolean | undefined = false>(
 ) => {
   const { endpoints } = useAuth();
   return useQuery(['managementRole', roleId, expandInUse], () => getManagementRole(roleId, expandInUse), {
-    enabled: Boolean(roleId) && (Boolean(endpoints?.owprov) || Boolean(axiosProvV2.defaults.baseURL)),
+    enabled: Boolean(roleId) && Boolean(endpoints?.owprov),
   });
 };
 
