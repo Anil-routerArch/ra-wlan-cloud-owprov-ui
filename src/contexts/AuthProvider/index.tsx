@@ -17,6 +17,7 @@ import {
   axiosInstaller,
   axiosOwls,
   axiosProv,
+  axiosProvV2,
   axiosRrm,
   axiosSec,
   axiosSub,
@@ -39,6 +40,7 @@ export const AuthProvider = ({ token, children }: AuthProviderProps) => {
         switch (endpoint.type) {
           case 'owprov':
             axiosProv.defaults.baseURL = `${endpoint.uri}/api/v1`;
+            axiosProvV2.defaults.baseURL = `${endpoint.uri}/api/v2`;
             break;
           case 'owfms':
             axiosFms.defaults.baseURL = `${endpoint.uri}/api/v1`;
@@ -145,6 +147,7 @@ export const AuthProvider = ({ token, children }: AuthProviderProps) => {
       axiosSec.defaults.headers.common.Authorization = `Bearer ${currentToken}`;
       axiosGw.defaults.headers.common.Authorization = `Bearer ${currentToken}`;
       axiosProv.defaults.headers.common.Authorization = `Bearer ${currentToken}`;
+      axiosProvV2.defaults.headers.common.Authorization = `Bearer ${currentToken}`;
       axiosFms.defaults.headers.common.Authorization = `Bearer ${currentToken}`;
       axiosSub.defaults.headers.common.Authorization = `Bearer ${currentToken}`;
       axiosOwls.defaults.headers.common.Authorization = `Bearer ${currentToken}`;

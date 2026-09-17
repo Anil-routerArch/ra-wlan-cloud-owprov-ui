@@ -8,6 +8,8 @@ import { ManagementRolesTable } from 'components/ManagementRolesTable';
 vi.mock('utils/axiosInstances', () => ({
   secUrl: 'http://localhost/api/v1',
   axiosSec: {},
+  axiosProv: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn(), defaults: { baseURL: 'http://localhost/api/v1', headers: { common: {} } } },
+  axiosProvV2: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn(), defaults: { baseURL: 'http://localhost/api/v2', headers: { common: {} } } },
 }));
 
 vi.mock('contexts/AuthProvider', () => ({
