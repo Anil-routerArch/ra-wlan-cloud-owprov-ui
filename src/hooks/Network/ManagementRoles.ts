@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from 'contexts/AuthProvider';
 import { Note } from 'models/Note';
 import { axiosProv, axiosProvV2 } from 'utils/axiosInstances';
 
@@ -54,10 +55,12 @@ export const getManagementRole = async <T extends boolean | undefined = false>(
 export const useGetManagementRole = <T extends boolean | undefined = false>(
   roleId: string,
   expandInUse?: T
-) =>
-  useQuery(['managementRole', roleId, expandInUse], () => getManagementRole(roleId, expandInUse), {
-    enabled: Boolean(roleId) && Boolean(axiosProvV2.defaults.baseURL),
+) => {
+  const { endpoints } = useAuth();
+  return useQuery(['managementRole', roleId, expandInUse], () => getManagementRole(roleId, expandInUse), {
+    enabled: Boolean(roleId) && (Boolean(endpoints?.owprov) || Boolean(axiosProvV2.defaults.baseURL)),
   });
+};
 
 export type CreateManagementRole = {
   name: string;

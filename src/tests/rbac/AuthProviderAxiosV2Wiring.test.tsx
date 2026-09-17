@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, act } from '@testing-library/react';
+import { render, act, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Endpoint } from 'models/Endpoint';
 import { useGetManagementRole } from 'hooks/Network/ManagementRoles';
@@ -169,6 +169,10 @@ describe('AuthProvider → axiosProv & axiosProvV2 Integration Wiring', () => {
     });
 
     expect(mockAxiosProvV2.defaults.baseURL).toBe('https://owprov.example.com:16005/api/v2');
+
+    await waitFor(() => {
+      expect(mockAxiosProvV2.get).toHaveBeenCalledWith('managementRole/role-test-1', { params: undefined });
+    });
   });
 
   it('6. useGetManagementRole query executes against axiosProvV2 when baseURL is configured', async () => {
