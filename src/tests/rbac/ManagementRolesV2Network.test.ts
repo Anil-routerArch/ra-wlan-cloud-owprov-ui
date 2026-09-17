@@ -24,7 +24,10 @@ import {
   createManagementRole,
   getManagementRoles,
   getManagementRole,
+  updateManagementRole,
+  deleteManagementRole,
   CreateManagementRole,
+  ManagementRole,
 } from 'hooks/Network/ManagementRoles';
 
 describe('V2 Management Role Network Contract & Payload Verification', () => {
@@ -184,6 +187,41 @@ describe('V2 Management Role Network Contract & Payload Verification', () => {
     const expanded = await getManagementRole('role-1', true);
     expect(axiosProvV2.get).toHaveBeenCalledWith('managementRole/role-1', { params: { expandInUse: true } });
     expect(expanded).toEqual(expandedEntries);
+  });
+
+  it('6. Updates management role via PUT /managementRole/{id} using axiosProvV2 and never calls V1', async () => {
+    const roleToUpdate: ManagementRole = {
+      id: 'role-update-1',
+      name: 'Updated Role Name',
+      description: 'Updated Description',
+      managementPolicy: 'pol-uuid-2',
+      users: ['usr-1'],
+      entity: 'ent-1',
+      venue: 'ven-1',
+    };
+
+    (axiosProvV2.put as any).mockResolvedValueOnce({
+      data: roleToUpdate,
+    });
+
+    const result = await updateManagementRole(roleToUpdate);
+
+    expect(axiosProvV2.put).toHaveBeenCalledTimes(1);
+    expect(axiosProvV2.put).toHaveBeenCalledWith('managementRole/role-update-1', roleToUpdate);
+    expect(axiosProv.put).not.toHaveBeenCalled();
+    expect(result).toEqual(roleToUpdate);
+  });
+
+  it('7. Deletes management role via DELETE /managementRole/{id} using axiosProvV2 and never calls V1', async () => {
+    (axiosProvV2.delete as any).mockResolvedValueOnce({
+      data: {},
+    });
+
+    await deleteManagementRole('role-del-1');
+
+    expect(axiosProvV2.delete).toHaveBeenCalledTimes(1);
+    expect(axiosProvV2.delete).toHaveBeenCalledWith('managementRole/role-del-1');
+    expect(axiosProv.delete).not.toHaveBeenCalled();
   });
 });
 

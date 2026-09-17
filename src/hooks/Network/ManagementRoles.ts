@@ -84,7 +84,7 @@ export const useCreateManagementRole = () => {
   });
 };
 
-const updateManagementRole = async (role: ManagementRole) =>
+export const updateManagementRole = async (role: ManagementRole) =>
   axiosProvV2.put(`managementRole/${role.id}`, role).then(({ data }) => data as ManagementRole);
 
 export const useUpdateManagementRole = () => {
@@ -97,7 +97,7 @@ export const useUpdateManagementRole = () => {
   });
 };
 
-const deleteManagementRole = async (roleId: string) =>
+export const deleteManagementRole = async (roleId: string) =>
   axiosProvV2.delete(`managementRole/${roleId}`);
 
 export const useDeleteManagementRole = () => {
