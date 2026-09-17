@@ -68,7 +68,7 @@ prov.interceptors.response.use(
   },
 );
 
-const provV2 = axios.default.create({ baseURL: secUrl.replace('/api/v1', '/api/v2') });
+const provV2 = axios.default.create();
 
 provV2.defaults.timeout = 120000;
 provV2.defaults.headers.get.Accept = 'application/json';

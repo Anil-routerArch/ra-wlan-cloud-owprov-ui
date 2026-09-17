@@ -56,7 +56,7 @@ export const useGetManagementRole = <T extends boolean | undefined = false>(
   expandInUse?: T
 ) =>
   useQuery(['managementRole', roleId, expandInUse], () => getManagementRole(roleId, expandInUse), {
-    enabled: !!roleId,
+    enabled: Boolean(roleId) && Boolean(axiosProvV2.defaults.baseURL),
   });
 
 export type CreateManagementRole = {

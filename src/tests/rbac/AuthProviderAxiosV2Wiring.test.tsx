@@ -1,11 +1,16 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, act } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Endpoint } from 'models/Endpoint';
+import { useGetManagementRole } from 'hooks/Network/ManagementRoles';
 
 const { mockAxiosProv, mockAxiosProvV2 } = vi.hoisted(() => ({
   mockAxiosProv: { defaults: { baseURL: '', headers: { common: {} as Record<string, string> } } },
-  mockAxiosProvV2: { defaults: { baseURL: '', headers: { common: {} as Record<string, string> } } },
+  mockAxiosProvV2: {
+    get: vi.fn(),
+    defaults: { baseURL: '', headers: { common: {} as Record<string, string> } },
+  },
 }));
 
 vi.mock('utils/axiosInstances', () => ({
@@ -115,6 +120,77 @@ describe('AuthProvider → axiosProv & axiosProvV2 Integration Wiring', () => {
 
     expect(mockAxiosProv.defaults.headers.common.Authorization).toBe('Bearer refreshed-token-99999');
     expect(mockAxiosProvV2.defaults.headers.common.Authorization).toBe('Bearer refreshed-token-99999');
+  });
+
+  it('4. axiosProvV2 is initially instantiated without a baseURL and never defaults to UCENTRALSEC/api/v2', async () => {
+    const actualAxios = await vi.importActual<typeof import('utils/axiosInstances')>('utils/axiosInstances');
+    expect(actualAxios.axiosProvV2.defaults.baseURL).toBeUndefined();
+    expect(actualAxios.axiosProvV2.defaults.baseURL).not.toBe(actualAxios.secUrl);
+    expect(actualAxios.axiosProvV2.defaults.baseURL).not.toBe(
+      actualAxios.secUrl.replace('/api/v1', '/api/v2')
+    );
+  });
+
+  it('5. useGetManagementRole query remains disabled while axiosProvV2.defaults.baseURL is unconfigured', async () => {
+    mockAxiosProvV2.defaults.baseURL = '';
+    mockAxiosProvV2.get = vi.fn().mockResolvedValue({ data: { id: 'role-test-1' } });
+
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
+    const TestRoleConsumer = () => {
+      const { isFetching } = useGetManagementRole('role-test-1');
+      return <div data-testid="isFetching">{isFetching ? 'fetching' : 'idle'}</div>;
+    };
+
+    const { getByTestId } = render(
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider token="token-xyz">
+          <TestRoleConsumer />
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+
+    // Before endpoint discovery: baseURL is empty, query is disabled and must NOT call axiosProvV2.get
+    expect(getByTestId('isFetching').textContent).toBe('idle');
+    expect(mockAxiosProvV2.get).not.toHaveBeenCalled();
+
+    // Now complete owprov endpoint discovery:
+    act(() => {
+      capturedEndpointsOnSuccess!([
+        {
+          type: 'owprov',
+          uri: 'https://owprov.example.com:16005',
+          authenticationType: 'sec',
+          version: '2',
+        },
+      ]);
+    });
+
+    expect(mockAxiosProvV2.defaults.baseURL).toBe('https://owprov.example.com:16005/api/v2');
+  });
+
+  it('6. useGetManagementRole query executes against axiosProvV2 when baseURL is configured', async () => {
+    mockAxiosProvV2.defaults.baseURL = 'https://owprov.example.com:16005/api/v2';
+    mockAxiosProvV2.get = vi.fn().mockResolvedValue({ data: { id: 'role-test-2' } });
+
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
+    const TestRoleConsumer = () => {
+      useGetManagementRole('role-test-2');
+      return <div>Role Consumer</div>;
+    };
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <TestRoleConsumer />
+      </QueryClientProvider>
+    );
+
+    expect(mockAxiosProvV2.get).toHaveBeenCalledWith('managementRole/role-test-2', { params: undefined });
   });
 });
 
