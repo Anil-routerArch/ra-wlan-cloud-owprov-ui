@@ -27,6 +27,7 @@ import {
   updateManagementRole,
   deleteManagementRole,
   CreateManagementRole,
+  UpdateManagementRole,
   ManagementRole,
 } from 'hooks/Network/ManagementRoles';
 
@@ -189,8 +190,8 @@ describe('V2 Management Role Network Contract & Payload Verification', () => {
     expect(expanded).toEqual(expandedEntries);
   });
 
-  it('6. Updates management role via PUT /managementRole/{id} using axiosProvV2 and never calls V1', async () => {
-    const roleToUpdate: ManagementRole = {
+  it('6. Updates management role via PUT /managementRole/{id} using axiosProvV2, sanitizes payload, and never calls V1', async () => {
+    const fullRoleWithImmutableFields: ManagementRole = {
       id: 'role-update-1',
       name: 'Updated Role Name',
       description: 'Updated Description',
@@ -198,18 +199,36 @@ describe('V2 Management Role Network Contract & Payload Verification', () => {
       users: ['usr-1'],
       entity: 'ent-1',
       venue: 'ven-1',
+      inUse: ['device-1'],
+      created: 1600000000,
+      modified: 1600001000,
     };
 
     (axiosProvV2.put as any).mockResolvedValueOnce({
-      data: roleToUpdate,
+      data: fullRoleWithImmutableFields,
     });
 
-    const result = await updateManagementRole(roleToUpdate);
+    const result = await updateManagementRole(fullRoleWithImmutableFields);
 
     expect(axiosProvV2.put).toHaveBeenCalledTimes(1);
-    expect(axiosProvV2.put).toHaveBeenCalledWith('managementRole/role-update-1', roleToUpdate);
+    expect(axiosProvV2.put).toHaveBeenCalledWith('managementRole/role-update-1', {
+      name: 'Updated Role Name',
+      description: 'Updated Description',
+      managementPolicy: 'pol-uuid-2',
+    });
+
+    // Assert that immutable scope & server metadata fields are NEVER sent in the PUT body:
+    const sentPayload = (axiosProvV2.put as any).mock.calls[0][1];
+    expect(sentPayload).not.toHaveProperty('id');
+    expect(sentPayload).not.toHaveProperty('entity');
+    expect(sentPayload).not.toHaveProperty('venue');
+    expect(sentPayload).not.toHaveProperty('users');
+    expect(sentPayload).not.toHaveProperty('inUse');
+    expect(sentPayload).not.toHaveProperty('created');
+    expect(sentPayload).not.toHaveProperty('modified');
+
     expect(axiosProv.put).not.toHaveBeenCalled();
-    expect(result).toEqual(roleToUpdate);
+    expect(result).toEqual(fullRoleWithImmutableFields);
   });
 
   it('7. Deletes management role via DELETE /managementRole/{id} using axiosProvV2 and never calls V1', async () => {

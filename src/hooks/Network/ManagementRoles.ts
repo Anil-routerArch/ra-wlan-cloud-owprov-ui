@@ -84,8 +84,28 @@ export const useCreateManagementRole = () => {
   });
 };
 
-export const updateManagementRole = async (role: ManagementRole) =>
-  axiosProvV2.put(`managementRole/${role.id}`, role).then(({ data }) => data as ManagementRole);
+export type UpdateManagementRole = {
+  id: string;
+  name?: string;
+  description?: string;
+  managementPolicy: string;
+  notes?: Note[];
+};
+
+export const updateManagementRole = async ({
+  id,
+  name,
+  description,
+  managementPolicy,
+  notes,
+}: UpdateManagementRole) => {
+  const payload: Record<string, unknown> = { managementPolicy };
+  if (name !== undefined) payload.name = name;
+  if (description !== undefined) payload.description = description;
+  if (notes !== undefined) payload.notes = notes;
+
+  return axiosProvV2.put(`managementRole/${id}`, payload).then(({ data }) => data as ManagementRole);
+};
 
 export const useUpdateManagementRole = () => {
   const queryClient = useQueryClient();
